@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details | ONIKUMA Nepal Official Store</title>
+  <meta name="description" content="View official ONIKUMA gaming headsets, mechanical keyboards, gaming mice and accessories in Nepal. 100% Genuine with 1-Year Replacement Warranty.">
+  <link rel="icon" type="image/png" href="/images/logo.png">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- Core & Component Stylesheets -->
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/header.css">
+  <link rel="stylesheet" href="/css/products.css">
+  <link rel="stylesheet" href="/css/product-detail.css">
+  <link rel="stylesheet" href="/css/cart.css">
+  <link rel="stylesheet" href="/css/modals.css">
+  <link rel="stylesheet" href="/css/checkout.css">
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <aside class="announcement-bar">
+    <div class="container announcement-inner">
+      <div class="announcement-message" id="topbarAnnouncement">
+        🔥 <strong>ONIKUMA NEPAL OFFICIAL STORE</strong> — Authorized Importer & Distributor | 1-Year Replacement Warranty
+      </div>
+      <div class="announcement-right">
+        <span class="delivery-badge">🚚 Free Delivery in KTM Valley on Rs. 3,000+</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Header -->
+  <header class="main-header">
+    <div class="container">
+      <div class="main-header-inner">
+        
+        <!-- Brand Logo -->
+        <a href="/" class="brand-logo" id="siteBrandLogo">
+          <img src="/images/logo.png" alt="ONIKUMA Nepal Official Logo" class="brand-logo-img">
+          <div class="brand-text">
+            <span class="brand-title">ONIKUMA <span>NEPAL</span></span>
+            <span class="brand-subtitle">OFFICIAL GAMING GEAR</span>
+          </div>
+        </a>
+
+        <!-- Search Form -->
+        <div class="search-wrapper">
+          <form class="search-form" id="globalSearchForm" action="/products" method="GET">
+            <select class="search-category-select" id="searchCategorySelect" style="display: none;">
+              <option value="all">All Categories</option>
+            </select>
+            <input type="text" name="search" class="search-input" id="globalSearchInput" placeholder="Search Onikuma headsets, keyboards, mice, K9 Pink..." autocomplete="off">
+            <button type="submit" class="search-btn" title="Search">🔍</button>
+          </form>
+          <!-- Live Search Results Dropdown -->
+          <div class="search-results-dropdown" id="searchResultsDropdown"></div>
+        </div>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          
+          <!-- Hotline Phone -->
+          <div class="header-support">
+            <div class="support-icon">📞</div>
+            <div class="support-text">
+              <span class="support-label">Support Hotline</span>
+              <a href="tel:9864006883" class="support-number hotline-text">9864006883</a>
+            </div>
+          </div>
+
+          <!-- Wishlist -->
+          <div class="action-item" id="headerWishlistBtn" title="Saved Wishlist">
+            <div class="action-icon-wrap">
+              <span>🤍</span>
+              <span class="badge-count" id="wishlistCountBadge">0</span>
+            </div>
+          </div>
+
+          <!-- Cart Trigger -->
+          <div class="action-item trigger-cart-drawer" id="headerCartBtn" title="View Shopping Cart">
+            <div class="action-icon-wrap">
+              <span>🛒</span>
+              <span class="badge-count cart-badge-count">0</span>
+            </div>
+            <div class="cart-label-wrap">
+              <span class="cart-label-sub">Shopping Cart</span>
+              <span class="cart-total-val cart-total-amount">Rs. 0</span>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Category Navigation Bar -->
+  <nav class="nav-bar">
+    <div class="container">
+      <div class="nav-bar-inner">
+        
+        <!-- Main Nav Links -->
+        <ul class="main-nav-links">
+          <li class="nav-link-item"><a href="/">Home</a></li>
+          <li class="nav-link-item"><a href="/products">All Products</a></li>
+          <li class="nav-link-item"><a href="/products?category=gaming-headsets">Gaming Headsets</a></li>
+          <li class="nav-link-item"><a href="/products?category=cat-ear-series">Cat-Ear Series <span class="nav-link-tag tag-pink">POPULAR</span></a></li>
+          <li class="nav-link-item"><a href="/products?category=keyboards">Keyboards</a></li>
+          <li class="nav-link-item"><a href="/products?category=gaming-mice">Mice</a></li>
+          <li class="nav-link-item"><a href="/products?deal=true">Flash Deals <span class="nav-link-tag tag-hot">SALE</span></a></li>
+        </ul>
+
+      </div>
+    </div>
+  </nav>
+
+  <!-- Product Detail Section -->
+  <main class="pdp-section" id="pdpMainContainer">
+    <div class="container">
+      
+      <!-- Breadcrumb -->
+      <div class="pdp-breadcrumb">
+        <a href="/">Home</a>
+        <span class="pdp-breadcrumb-sep">/</span>
+        <a href="/products">Products</a>
+        <span class="pdp-breadcrumb-sep">/</span>
+        <a href="/products" id="pdpBreadcrumbCat">Gaming Gear</a>
+        <span class="pdp-breadcrumb-sep">/</span>
+        <span id="pdpBreadcrumbTitle" style="color: #fff; font-weight: 600;">Loading Product...</span>
+      </div>
+
+      <!-- Main 2-Column Product Grid -->
+      <div class="pdp-main-grid">
+        
+        <!-- Left: Image Gallery (Up to 5 images) -->
+        <div class="pdp-gallery-wrap">
+          <div class="pdp-main-img-wrap">
+            <img src="" alt="Product Preview" id="pdpMainImg" class="pdp-main-img">
+          </div>
+          <!-- Thumbnails Strip -->
+          <div class="pdp-thumbnails" id="pdpThumbnails"></div>
+        </div>
+
+        <!-- Right: Info & Purchase Card -->
+        <div class="pdp-info-wrap">
+          
+          <div class="pdp-meta-row">
+            <div class="pdp-badges-group" id="pdpBadgesGroup"></div>
+            <a href="#" class="pdp-category-link" id="pdpCategoryLink">Gaming Peripheral</a>
+          </div>
+
+          <h1 class="pdp-title" id="pdpTitle">Loading Product Title...</h1>
+          <div class="pdp-model-code" id="pdpModelCode" style="margin-bottom: 14px;"></div>
+
+          <div class="pdp-rating-row">
+            <span class="pdp-stars">★★★★★</span>
+            <span class="pdp-rating-val" id="pdpRatingVal">4.9</span>
+            <span class="pdp-reviews-count" id="pdpReviewsCount">(48 verified gamer reviews)</span>
+          </div>
+
+          <!-- Pricing Box -->
+          <div class="pdp-price-box">
+            <div class="pdp-current-price" id="pdpCurrentPrice">Rs. 0</div>
+            <div class="pdp-regular-price" id="pdpRegularPrice">Rs. 0</div>
+            <span class="pdp-save-badge" id="pdpSaveBadge">SAVE 0%</span>
+          </div>
+
+          <!-- Stock Urgency Alert Notice -->
+          <div class="pdp-stock-banner" id="pdpStockBanner">
+            <span>✓</span> <strong>In Stock</strong> — Ready for prompt delivery across Nepal.
+          </div>
+
+          <!-- Description -->
+          <p class="pdp-desc" id="pdpDesc"></p>
+
+          <!-- Quantity & Purchase CTAs -->
+          <div class="pdp-actions-row">
+            <div class="pdp-qty-wrap">
+              <button type="button" class="pdp-qty-btn" id="pdpQtyMinus">-</button>
+              <input type="number" id="pdpQtyInput" value="1" min="1" max="15" class="pdp-qty-input" aria-label="Order Quantity">
+              <button type="button" class="pdp-qty-btn" id="pdpQtyPlus">+</button>
+            </div>
+            
+            <button type="button" class="btn btn-primary btn-pdp-add" id="btnPdpAddCart">
+              <span>🛒</span> Add to Cart
+            </button>
+
+            <button type="button" class="btn btn-sakura btn-pdp-buy" id="btnPdpBuyNow">
+              <span>⚡</span> Buy Now
+            </button>
+          </div>
+
+          <!-- Instant WhatsApp Order Button -->
+          <button type="button" class="btn btn-whatsapp btn-pdp-whatsapp" id="btnPdpWhatsApp">
+            <span>💬</span> Quick WhatsApp Order (9864006883)
+          </button>
+
+          <!-- Nepal Guarantee Trust Cards -->
+          <div class="pdp-trust-card">
+            <div class="trust-item">
+              <span class="trust-icon">🚚</span>
+              <div>
+                <strong>FREE KTM Delivery</strong>
+                <div>On all orders above Rs. 3,000</div>
+              </div>
+            </div>
+            <div class="trust-item">
+              <span class="trust-icon">🛡️</span>
+              <div>
+                <strong>1-Year Replacement</strong>
+                <div>Official Nepal warranty support</div>
+              </div>
+            </div>
+            <div class="trust-item">
+              <span class="trust-icon">💵</span>
+              <div>
+                <strong>Cash on Delivery</strong>
+                <div>Available across 77 districts</div>
+              </div>
+            </div>
+            <div class="trust-item">
+              <span class="trust-icon">📦</span>
+              <div>
+                <strong>Open Parcel Check</strong>
+                <div>Check item before paying rider</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Features & Technical Specifications Box -->
+      <div class="pdp-details-box">
+        <h2 class="pdp-section-heading"><span>⚡</span> Key Features & Highlights</h2>
+        <ul class="features-list" id="pdpFeaturesList"></ul>
+
+        <h2 class="pdp-section-heading" style="margin-top: 36px;"><span>⚙️</span> Technical Specifications</h2>
+        <table class="specs-table" id="pdpSpecsTable"></table>
+      </div>
+
+      <!-- Related Products Section -->
+      <div class="products-section" style="padding: 0;">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Related Gaming Gear</h2>
+            <p class="section-subtitle">Gamers who looked at this item also bought</p>
+          </div>
+          <a href="/products" class="btn btn-secondary" style="font-size: 0.82rem; padding: 6px 16px; border-radius: 999px;">Browse All Gear →</a>
+        </div>
+        <div class="products-grid" id="pdpRelatedGrid"></div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer style="background-color: var(--bg-surface); border-top: 1px solid var(--border-subtle); padding: 50px 0 20px 0; margin-top: 60px;">
+    <div class="container">
+      <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 40px; margin-bottom: 40px;">
+        
+        <div>
+          <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 14px;">
+            <img src="/images/logo.png" alt="ONIKUMA Nepal Logo" style="height: 48px; width: auto; object-fit: contain;">
+            <span style="font-weight: 900; font-size: 1.3rem; letter-spacing: 0.05em; color: #fff;">ONIKUMA <span style="color: var(--color-primary);">NEPAL</span></span>
+          </div>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; line-height: 1.6; margin-bottom: 16px;">
+            The official authorized importer and distributor for ONIKUMA gaming gear in Nepal. Delivering professional esports headsets, mechanical keyboards, gaming mice, and streaming gear across Kathmandu and all 77 districts.
+          </p>
+          <div style="color: var(--text-secondary); font-size: 0.85rem;">
+            <div>📍 Kathmandu, Nepal</div>
+            <div>📞 Phone / WhatsApp: <strong style="color: var(--color-cyan);">+977 9864006883</strong></div>
+          </div>
+          <div style="margin-top: 14px;">
+            <a href="https://www.instagram.com/onikumagamingnepal/" target="_blank" rel="noopener noreferrer" style="display: inline-flex; align-items: center; gap: 8px; padding: 7px 15px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: #fff; border-radius: 999px; font-size: 0.82rem; font-weight: 700; text-decoration: none; box-shadow: 0 4px 14px rgba(220, 39, 67, 0.35); transition: transform 0.2s ease;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              <span>Follow @onikumagamingnepal</span>
+            </a>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; margin-bottom: 16px; color: #fff;">Products</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; color: var(--text-secondary);">
+            <li><a href="/products?category=gaming-headsets">Gaming Headsets</a></li>
+            <li><a href="/products?category=cat-ear-series">Cat Ear Series</a></li>
+            <li><a href="/products?category=keyboards">Mechanical Keyboards</a></li>
+            <li><a href="/products?category=gaming-mice">Gaming Mice</a></li>
+            <li><a href="/products?category=headset-stands">RGB Headset Stands</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; margin-bottom: 16px; color: #fff;">Support & Store</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px; font-size: 0.88rem; color: var(--text-secondary);">
+            <li><a href="https://wa.me/9779864006883" target="_blank">Contact Support</a></li>
+            <li><a href="https://wa.me/9779864006883" target="_blank">Warranty Claim</a></li>
+            <li>
+              <a href="https://www.instagram.com/onikumagamingnepal/" target="_blank" rel="noopener noreferrer" style="color: #ff4d88; font-weight: 600; display: inline-flex; align-items: center; gap: 5px;">
+                <span>📸</span> Instagram Page
+              </a>
+            </li>
+            <li><a href="/products">Delivery Rates</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 style="font-size: 1rem; margin-bottom: 16px; color: #fff;">Accepted Nepal Payments</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 14px;">
+            Pay easily at your doorstep or digitally via top wallets:
+          </p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <span class="badge badge-cod">Cash on Delivery</span>
+            <span class="badge badge-esewa">eSewa</span>
+            <span class="badge badge-khalti">Khalti</span>
+            <span class="badge badge-fonepay">Fonepay QR</span>
+          </div>
+        </div>
+
+      </div>
+
+      <div style="text-align: center; padding-top: 24px; border-top: 1px solid var(--border-subtle); font-size: 0.82rem; color: var(--text-muted);">
+        © 2026 ONIKUMA NEPAL. All Rights Reserved. Official gaming gear distributor in Nepal.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Slide-in Cart Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop"></div>
+  <aside class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <div class="cart-drawer-title">
+        <img src="/images/logo.png" alt="Onikuma" style="height: 28px; width: auto; object-fit: contain;">
+        <span>Your Shopping Cart</span>
+        <span class="badge badge-sale cart-badge-count" style="font-size: 0.72rem;">0</span>
+      </div>
+      <div class="cart-close-btn" id="cartDrawerClose">✕</div>
+    </div>
+
+    <!-- Free Delivery Progress Bar -->
+    <div class="shipping-progress-box">
+      <div class="shipping-progress-text" id="freeShippingText">
+        Add <strong>Rs. 3,000</strong> more for FREE Delivery in KTM!
+      </div>
+      <div class="shipping-progress-bar">
+        <div class="shipping-progress-fill" id="freeShippingFill" style="width: 0%;"></div>
+      </div>
+    </div>
+
+    <!-- Cart Items -->
+    <div class="cart-drawer-items" id="cartDrawerItems"></div>
+
+    <!-- Cart Footer -->
+    <div class="cart-drawer-footer" id="cartDrawerFooter">
+      <div class="cart-subtotal-row">
+        <span>Subtotal:</span>
+        <span class="cart-subtotal-val cart-total-amount">Rs. 0</span>
+      </div>
+      <button class="btn btn-primary" id="btnProceedCheckout" style="width: 100%; padding: 13px; font-weight: 800;">
+        Proceed to Checkout →
+      </button>
+      <button class="btn btn-whatsapp" id="btnCartWhatsAppOrder" onclick="document.getElementById('btnProceedCheckout').click()" style="width: 100%;">
+        💬 Quick WhatsApp Order (9864006883)
+      </button>
+    </div>
+  </aside>
+
+  <!-- 2-Column Checkout Modal -->
+  <div class="checkout-modal-wrapper" id="checkoutModal">
+    <div class="checkout-container">
+      <div class="checkout-header">
+        <div class="checkout-header-title">
+          <img src="/images/logo.png" alt="Onikuma Nepal" style="height: 32px; width: auto;">
+          <div>
+            <h2 style="font-size: 1.15rem; color: #fff;">Quick Nepal Checkout</h2>
+            <p style="font-size: 0.78rem; color: var(--text-secondary);">Direct delivery across Kathmandu & All Nepal</p>
+          </div>
+        </div>
+        <div class="checkout-close-btn" id="checkoutCloseBtn">✕</div>
+      </div>
+
+      <div class="checkout-body">
+        <!-- Left: Customer Delivery Details Form -->
+        <div class="checkout-form-column">
+          <form id="checkoutForm">
+            <h3 class="checkout-section-title"><span>1</span> Delivery Address (Nepal)</h3>
+            
+            <div class="checkout-row">
+              <div class="checkout-field">
+                <label>Full Name *</label>
+                <input type="text" name="fullName" class="checkout-input" placeholder="e.g. Ramesh Shrestha" required>
+              </div>
+              <div class="checkout-field">
+                <label>Mobile Number (For Courier) *</label>
+                <input type="tel" name="phone" class="checkout-input" placeholder="e.g. 98XXXXXXXX" required>
+              </div>
+            </div>
+
+            <div class="checkout-field">
+              <label>Delivery Area *</label>
+              <select name="locationType" class="checkout-input" id="checkoutLocationType">
+                <option value="kathmandu">Inside Kathmandu Valley (Rs. 100 / FREE over Rs. 3,000)</option>
+                <option value="outside">Outside Valley (All 77 Districts) (Rs. 200)</option>
+              </select>
+            </div>
+
+            <div class="checkout-field">
+              <label>Street / Tole Address *</label>
+              <input type="text" name="address" class="checkout-input" placeholder="e.g. New Road, House #42 / Near Chowk" required>
+            </div>
+
+            <div class="checkout-row">
+              <div class="checkout-field">
+                <label>City *</label>
+                <input type="text" name="city" class="checkout-input" placeholder="Kathmandu, Pokhara, etc." required>
+              </div>
+              <div class="checkout-field">
+                <label>District</label>
+                <input type="text" name="district" class="checkout-input" placeholder="Kathmandu">
+              </div>
+            </div>
+
+            <div class="checkout-field">
+              <label>Delivery Notes (Optional)</label>
+              <input type="text" name="notes" class="checkout-input" placeholder="Call upon arrival, leave at gate...">
+            </div>
+
+            <h3 class="checkout-section-title" style="margin-top: 24px;"><span>2</span> Payment Method</h3>
+            <div class="payment-methods-grid">
+              <label class="payment-method-card active">
+                <input type="radio" name="paymentMethod" value="cod" checked>
+                <div>
+                  <div class="method-title">💵 Cash on Delivery (COD)</div>
+                  <div class="method-sub">Pay cash when courier hands over your gear</div>
+                </div>
+              </label>
+
+              <label class="payment-method-card">
+                <input type="radio" name="paymentMethod" value="esewa">
+                <div>
+                  <div class="method-title">🟢 eSewa Digital Wallet</div>
+                  <div class="method-sub">Pay directly to Onikuma Nepal eSewa ID</div>
+                </div>
+              </label>
+
+              <label class="payment-method-card">
+                <input type="radio" name="paymentMethod" value="khalti">
+                <div>
+                  <div class="method-title">🟣 Khalti Wallet</div>
+                  <div class="method-sub">Instant digital confirmation via Khalti</div>
+                </div>
+              </label>
+
+              <label class="payment-method-card">
+                <input type="radio" name="paymentMethod" value="fonepay">
+                <div>
+                  <div class="method-title">🔴 Fonepay Mobile Banking QR</div>
+                  <div class="method-sub">Scan QR from any Nepal bank app</div>
+                </div>
+              </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block checkout-submit-btn" id="btnSubmitOrder" style="margin-top: 24px; padding: 14px; font-weight: 800; font-size: 1.05rem;">
+              Place Order (Confirm) →
+            </button>
+          </form>
+        </div>
+
+        <!-- Right: Order Summary Column -->
+        <div class="checkout-summary-column">
+          <h3 class="checkout-section-title">Order Summary</h3>
+          <div class="checkout-items-list" id="checkoutItemsContainer"></div>
+
+          <!-- Promo Code Input -->
+          <div class="checkout-promo-box" style="margin: 18px 0; display: flex; gap: 8px;">
+            <input type="text" id="checkoutPromoInput" class="checkout-input" placeholder="Promo code (e.g. ONIKUMA10)" style="text-transform: uppercase;">
+            <button type="button" id="btnApplyPromo" class="btn btn-secondary" style="padding: 8px 16px; font-size: 0.85rem;">Apply</button>
+          </div>
+          <div id="promoAppliedBadge" style="display: none; font-size: 0.8rem; color: #00F0FF; font-weight: 700; margin-bottom: 12px;"></div>
+
+          <div class="checkout-totals-box">
+            <div class="total-line">
+              <span>Items Subtotal:</span>
+              <span id="checkoutSubtotalVal">Rs. 0</span>
+            </div>
+            <div class="total-line" id="checkoutDiscountRow" style="display: none; color: #00F0FF;">
+              <span>Promo Discount:</span>
+              <span id="checkoutDiscountVal">- Rs. 0</span>
+            </div>
+            <div class="total-line">
+              <span>Estimated Delivery:</span>
+              <span id="checkoutDeliveryVal" style="color: var(--color-cyan);">Rs. 100</span>
+            </div>
+            <div class="total-line grand-total">
+              <span>Total Payable:</span>
+              <span id="checkoutGrandTotalVal">Rs. 0</span>
+            </div>
+          </div>
+
+          <div class="checkout-guarantees">
+            <div class="guarantee-item">✓ 100% Genuine Onikuma Nepal Warranty</div>
+            <div class="guarantee-item">✓ 7-Day Easy Replacement Policy</div>
+            <div class="guarantee-item">✓ Open Parcel Checking Allowed in Valley</div>
+          </div>
+
+          <button type="button" class="btn btn-whatsapp btn-block" id="btnWhatsAppCheckout" style="margin-top: 14px;">
+            💬 Order Directly via WhatsApp
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Module Script -->
+  <script type="module" src="/js/product-detail.js"></script>
+</body>
+</html>

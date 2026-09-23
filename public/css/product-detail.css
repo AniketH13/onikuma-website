@@ -1,0 +1,433 @@
+/* Dedicated Single Product Details Page (PDP) Styles */
+
+.pdp-section {
+  padding: 30px 0 60px 0;
+}
+
+.pdp-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.pdp-breadcrumb a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.pdp-breadcrumb a:hover {
+  color: var(--color-primary);
+}
+
+.pdp-breadcrumb-sep {
+  opacity: 0.4;
+}
+
+/* 2-Column Product Grid */
+.pdp-main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  margin-bottom: 40px;
+}
+
+/* Left: Gallery */
+.pdp-gallery-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.pdp-main-img-wrap {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+}
+
+.pdp-main-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.pdp-main-img-wrap:hover .pdp-main-img {
+  transform: scale(1.04);
+}
+
+/* Up to 5 Thumbnails Strip */
+.pdp-thumbnails {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.pdp-thumb {
+  width: 76px;
+  height: 76px;
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--border-subtle);
+  object-fit: cover;
+  cursor: pointer;
+  background: var(--bg-surface);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.pdp-thumb:hover {
+  border-color: var(--border-muted);
+  transform: translateY(-2px);
+}
+
+.pdp-thumb.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(255, 46, 99, 0.4);
+}
+
+/* Right: Product Info */
+.pdp-info-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.pdp-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.pdp-badges-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pdp-category-link {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-cyan);
+  text-decoration: none;
+  letter-spacing: 0.05em;
+}
+
+.pdp-model-code {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+.pdp-title {
+  font-size: 1.85rem;
+  font-weight: 900;
+  color: #FFFFFF;
+  line-height: 1.25;
+  margin-bottom: 12px;
+}
+
+.pdp-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pdp-stars {
+  color: var(--color-accent);
+  letter-spacing: 2px;
+}
+
+.pdp-rating-val {
+  font-weight: 700;
+  color: #FFFFFF;
+  font-size: 0.88rem;
+}
+
+.pdp-reviews-count {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+/* Price Row */
+.pdp-price-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.pdp-current-price {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--color-primary);
+}
+
+.pdp-regular-price {
+  font-size: 1.15rem;
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.pdp-save-badge {
+  background: rgba(255, 46, 99, 0.15);
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-weight: 800;
+  font-size: 0.82rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+/* Stock Status Notice */
+.pdp-stock-banner {
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdp-stock-in {
+  background: rgba(0, 240, 255, 0.08);
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  color: var(--color-cyan);
+}
+
+.pdp-stock-low {
+  background: rgba(255, 183, 3, 0.12);
+  border: 1px solid rgba(255, 183, 3, 0.4);
+  color: #FFB703;
+}
+
+.pdp-stock-out {
+  background: rgba(255, 46, 99, 0.12);
+  border: 1px solid rgba(255, 46, 99, 0.4);
+  color: var(--color-primary);
+}
+
+/* Description */
+.pdp-desc {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+/* Purchase Actions */
+.pdp-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.pdp-qty-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--border-muted);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  overflow: hidden;
+  height: 48px;
+}
+
+.pdp-qty-btn {
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  width: 40px;
+  height: 100%;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.pdp-qty-btn:hover {
+  background: var(--bg-elevated);
+}
+
+.pdp-qty-input {
+  width: 50px;
+  height: 100%;
+  background: transparent;
+  border: none;
+  text-align: center;
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 1rem;
+  outline: none;
+}
+
+.btn-pdp-add {
+  flex: 1;
+  min-width: 170px;
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-pdp-buy {
+  height: 48px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 0 24px;
+}
+
+.btn-pdp-whatsapp {
+  width: 100%;
+  height: 44px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+/* Nepal Trust Card */
+.pdp-trust-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.trust-icon {
+  font-size: 1.15rem;
+}
+
+/* Technical Specs & Features Tabs / Box */
+.pdp-details-box {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 36px 40px;
+  margin-bottom: 50px;
+}
+
+.pdp-section-heading {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.features-list {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+.features-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.features-list li::before {
+  content: '✓';
+  color: var(--color-cyan);
+  font-weight: 900;
+}
+
+/* Specs Table */
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.specs-table tr {
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.specs-table td {
+  padding: 12px 16px;
+}
+
+.specs-table td:first-child {
+  width: 35%;
+  color: var(--text-muted);
+  font-weight: 600;
+  background: var(--bg-surface);
+}
+
+.specs-table td:last-child {
+  color: #FFFFFF;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .pdp-main-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 24px;
+  }
+
+  .features-list {
+    grid-template-columns: 1fr;
+  }
+
+  .pdp-trust-card {
+    grid-template-columns: 1fr;
+  }
+}

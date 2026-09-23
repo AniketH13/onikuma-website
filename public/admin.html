@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ONIKUMA Nepal | Store Admin & MongoDB Catalog Management</title>
+  <link rel="icon" type="image/png" href="/images/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lexend+Deca:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/admin.css">
+</head>
+<body>
+
+  <!-- Admin Authentication Login Panel Overlay -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="admin-login-card">
+      <div class="admin-login-header">
+        <img src="/images/logo.png" alt="ONIKUMA Logo" class="admin-login-logo">
+        <h2 class="admin-login-title">ADMINISTRATOR LOGIN</h2>
+        <p class="admin-login-subtitle">Onikuma Nepal Store & Database Console</p>
+      </div>
+
+      <!-- Error Alert -->
+      <div class="login-alert-box" id="loginAlertBox">
+        <span>⚠️</span>
+        <span id="loginAlertMsg">Invalid credentials</span>
+      </div>
+
+      <form id="adminLoginForm">
+        <div class="login-field-wrap">
+          <span class="login-field-icon">👤</span>
+          <input type="text" id="loginUsername" class="login-control" placeholder="Admin ID / Username" required autocomplete="username">
+        </div>
+
+        <div class="login-field-wrap">
+          <span class="login-field-icon">🔒</span>
+          <input type="password" id="loginPassword" class="login-control" placeholder="Admin Password" required autocomplete="current-password">
+          <button type="button" class="login-toggle-pwd" id="btnTogglePwd" title="Toggle password visibility">👁️</button>
+        </div>
+
+        <!-- Quick Demo Credentials Fill -->
+        <div class="login-quick-creds">
+          <div>
+            <span style="color: var(--text-muted);">Default:</span> <strong>admin</strong> / <strong>onikuma2026</strong>
+          </div>
+          <button type="button" class="btn-fill-creds" id="btnQuickFillCreds">Auto Fill</button>
+        </div>
+
+        <button type="submit" class="btn-admin-login-submit" id="btnAdminLoginSubmit">
+          Sign In to Admin Console →
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="admin-layout" id="adminMainLayout">
+    
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <img src="/images/logo.png" alt="Onikuma Admin Logo" style="height: 42px; width: auto; object-fit: contain; filter: drop-shadow(0 2px 8px rgba(255, 46, 99, 0.3));">
+        <div class="brand-text">
+          <span class="brand-title" style="font-size: 1.1rem;">ONIKUMA</span>
+          <span class="brand-subtitle" style="font-size: 0.65rem;">ADMIN CONSOLE</span>
+        </div>
+      </div>
+
+      <nav class="admin-sidebar-nav">
+        <button class="admin-nav-btn active" data-tab="categoriesTab">
+          <span class="admin-nav-icon">📁</span>
+          <span>Categories</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="productsTab">
+          <span class="admin-nav-icon">🎮</span>
+          <span>Products</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="stockTab">
+          <span class="admin-nav-icon">📊</span>
+          <span>Stock & Inventory</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="ordersTab">
+          <span class="admin-nav-icon">📦</span>
+          <span>Orders (<span id="orderCountBadge">0</span>)</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="offersTab">
+          <span class="admin-nav-icon">🏷️</span>
+          <span>Offers & Deals</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="settingsTab">
+          <span class="admin-nav-icon">⚙️</span>
+          <span>Store Settings</span>
+        </button>
+      </nav>
+
+      <div class="admin-sidebar-footer">
+        <a href="/" class="btn btn-secondary" style="width: 100%; font-size: 0.82rem; padding: 8px;">
+          🌐 View Storefront
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Admin Workspace -->
+    <main class="admin-main">
+      
+      <!-- Real-Time Order Alert Banner -->
+      <div class="admin-order-alert-banner hidden" id="adminOrderAlertBanner">
+        <div class="alert-banner-left">
+          <span class="alert-bell-icon">🔔</span>
+          <div>
+            <div class="alert-banner-title">NEW ORDER RECEIVED!</div>
+            <div class="alert-banner-desc" id="adminOrderAlertText">A new order just arrived from customer!</div>
+          </div>
+        </div>
+        <div class="alert-banner-actions">
+          <button type="button" class="btn btn-primary" id="btnAlertViewOrder" style="padding: 6px 14px; font-size: 0.8rem; font-weight: 800;">
+            📦 View Order
+          </button>
+          <button type="button" class="btn-alert-close" id="btnAlertClose" title="Dismiss Alert">✕</button>
+        </div>
+      </div>
+
+      <!-- Topbar -->
+      <div class="admin-topbar">
+        <h1 class="admin-page-title" id="adminPageTitle">Categories Management</h1>
+        
+        <div class="admin-topbar-actions">
+          <div class="db-status-pill" id="adminDbStatus">
+            <span class="db-dot"></span> Checking DB...
+          </div>
+          <div class="admin-user-pill">
+            <span>👤</span>
+            <span id="adminUsernameBadge">admin</span>
+          </div>
+          <button class="btn-logout" id="btnAdminLogout" title="Sign out of Admin">🚪 Sign Out</button>
+          <a href="/" target="_blank" class="btn btn-primary" style="padding: 8px 16px; font-size: 0.85rem;">
+            Open Store ↗
+          </a>
+        </div>
+      </div>
+
+      <!-- Admin Content Tab Panes -->
+      <div class="admin-content">
+        
+        <!-- Tab 1: Categories -->
+        <div class="admin-tab-pane active" id="categoriesTab">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: #fff;">Store Categories</h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Changes here immediately update the storefront "All Categories" dropdown menu and mega menu.
+                </p>
+              </div>
+              <button class="btn btn-primary" id="btnOpenAddCategory">
+                <span>+</span> Add New Category
+              </button>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Category Name</th>
+                  <th>Slug</th>
+                  <th>Description</th>
+                  <th style="width: 100px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="categoriesTableBody">
+                <!-- Filled dynamically by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 2: Products -->
+        <div class="admin-tab-pane" id="productsTab">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: #fff;">Product Catalog</h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Manage Onikuma gaming gear, pricing in NPR, stock status, and feature highlights.
+                </p>
+              </div>
+              <button class="btn btn-primary" id="btnOpenAddProduct">
+                <span>+</span> Add New Product
+              </button>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Product</th>
+                  <th>Category</th>
+                  <th>Price (NPR)</th>
+                  <th>Stock</th>
+                  <th style="width: 100px;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="productsTableBody">
+                <!-- Filled dynamically by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 3: Stock & Inventory Management -->
+        <div class="admin-tab-pane" id="stockTab">
+          
+          <!-- Stock Metrics Summary Cards -->
+          <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;">
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;">
+              <div style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Catalog SKUs</div>
+              <div id="statTotalSkus" style="font-size: 1.8rem; font-weight: 900; color: #FFFFFF; margin-top: 4px;">0</div>
+            </div>
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;">
+              <div style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total Stock Units</div>
+              <div id="statTotalUnits" style="font-size: 1.8rem; font-weight: 900; color: var(--color-cyan); margin-top: 4px;">0</div>
+            </div>
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;">
+              <div style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Low Stock Alert (&le; 5)</div>
+              <div id="statLowStock" style="font-size: 1.8rem; font-weight: 900; color: var(--color-amber); margin-top: 4px;">0</div>
+            </div>
+            <div style="background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 18px;">
+              <div style="font-size: 0.76rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Out of Stock (0 Units)</div>
+              <div id="statOutOfStock" style="font-size: 1.8rem; font-weight: 900; color: #FF4757; margin-top: 4px;">0</div>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: #fff;">Inventory & Real-Time Stock Control</h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Update inventory count per model, toggle stock status, and prevent overselling.
+                </p>
+              </div>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="stockSearchInput" class="form-control" placeholder="Search by model or name..." style="width: 240px; font-size: 0.82rem; padding: 6px 12px;">
+              </div>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Product & Model</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th style="width: 190px;">Stock Quantity</th>
+                  <th>Status</th>
+                  <th style="width: 120px;">Save</th>
+                </tr>
+              </thead>
+              <tbody id="stockTableBody">
+                <!-- Filled dynamically by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 4: Orders Tracker -->
+        <div class="admin-tab-pane" id="ordersTab">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: #fff;">Customer Orders</h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Orders placed via Checkout or WhatsApp in Nepal. Update status to notify delivery pipeline.
+                </p>
+              </div>
+            </div>
+
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Contact</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody">
+                <!-- Filled dynamically by admin.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab: Offers & Deals -->
+        <div class="admin-tab-pane" id="offersTab">
+          <div style="display: flex; flex-direction: column; gap: 24px;">
+
+            <!-- Promo Codes Manager Card -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <h3 style="font-size: 1.15rem; color: #fff;">🏷️ Active Promo / Coupon Codes</h3>
+                  <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                    Discount codes that customers can apply at checkout for instant savings.
+                  </p>
+                </div>
+                <button class="btn btn-primary" id="btnOpenAddPromoCode" type="button">
+                  <span>+</span> Add Promo Code
+                </button>
+              </div>
+
+              <div id="promoCodesList" class="promo-codes-grid">
+                <!-- Dynamically rendered by admin.js -->
+              </div>
+            </div>
+
+            <!-- Flash Deals & Sale Pricing Quick Manager -->
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div>
+                  <h3 style="font-size: 1.15rem; color: #fff;">🔥 Flash Deals & Sale Offer Badges</h3>
+                  <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                    Toggle Flash Sale status, set badges (Sale, Hot Deal, Best Seller, Cat-Ear), and update sale prices.
+                  </p>
+                </div>
+              </div>
+
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Regular Price</th>
+                    <th>Sale Price</th>
+                    <th>Discount</th>
+                    <th>Flash Deal?</th>
+                    <th>Badge</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="offersDealsTableBody">
+                  <!-- Dynamically rendered by admin.js -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Deal Announcement Banner Card -->
+            <div class="admin-card" style="max-width: 750px;">
+              <div class="admin-card-header">
+                <div>
+                  <h3 style="font-size: 1.15rem; color: #fff;">📢 Deal of the Day Banner Settings</h3>
+                  <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                    Header announcement banner and Free Delivery threshold across Nepal.
+                  </p>
+                </div>
+              </div>
+              <form id="dealBannerForm">
+                <div class="admin-form-group">
+                  <label class="form-label">Promotional Announcement Text</label>
+                  <textarea id="dealAnnouncementText" class="form-control" rows="2" placeholder="🔥 Dashain Gaming Bonanza: Extra 10% OFF with code ONIKUMA10 | Delivery Across All 77 Districts"></textarea>
+                </div>
+                <div class="admin-form-group">
+                  <label class="form-label">Free Delivery Threshold (Rs.)</label>
+                  <input type="number" id="dealFreeDeliveryThreshold" class="form-control" value="3000">
+                </div>
+                <button type="submit" class="btn btn-primary">Save Deal Settings</button>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Tab 5: Store Settings -->
+        <div class="admin-tab-pane" id="settingsTab">
+          <div class="admin-card" style="max-width: 700px;">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: #fff;">Store Configuration</h3>
+                <p style="font-size: 0.82rem; color: var(--text-secondary);">
+                  Customize support hotline numbers, delivery fees, and topbar announcements.
+                </p>
+              </div>
+            </div>
+
+            <form id="storeSettingsForm">
+              <div class="admin-form-group">
+                <label class="form-label">Customer Support Hotline Phone</label>
+                <input type="text" id="settingHotline" class="form-control" value="9864006883" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label class="form-label">WhatsApp Support Number (977-XXXXXXXXXX)</label>
+                <input type="text" id="settingWhatsapp" class="form-control" value="9864006883" required>
+              </div>
+
+              <div class="admin-form-group">
+                <label class="form-label">Topbar Announcement Message</label>
+                <textarea id="settingAnnouncement" class="form-control" rows="3"></textarea>
+              </div>
+
+              <div class="admin-form-row">
+                <div class="admin-form-group">
+                  <label class="form-label">Inside Kathmandu Valley Delivery (Rs.)</label>
+                  <input type="number" id="settingInsideValleyFee" class="form-control" value="100">
+                </div>
+                <div class="admin-form-group">
+                  <label class="form-label">Outside Valley Delivery (Rs.)</label>
+                  <input type="number" id="settingOutsideValleyFee" class="form-control" value="200">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                Save Store Settings
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Add Category Modal -->
+  <div class="admin-modal-overlay" id="addCategoryModal">
+    <div class="admin-modal-card">
+      <div class="admin-modal-header">
+        <h3 style="color: #fff;">Add New Category</h3>
+        <button type="button" id="closeAddCategoryModal" style="color: var(--text-muted); font-size: 1.2rem;">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="categoryCreateForm">
+          <div class="admin-form-group">
+            <label class="form-label">Category Name *</label>
+            <input type="text" name="catName" class="form-control" placeholder="e.g. Gaming Microphones" required>
+          </div>
+          <div class="admin-form-group">
+            <label class="form-label">Slug (Optional, auto-generated)</label>
+            <input type="text" name="catSlug" class="form-control" placeholder="gaming-microphones">
+          </div>
+          <div class="admin-form-group">
+            <label class="form-label">Emoji Icon</label>
+            <input type="text" name="catIcon" class="form-control" placeholder="🎙️" value="🎙️">
+          </div>
+          <div class="admin-form-group">
+            <label class="form-label">Description</label>
+            <textarea name="catDesc" class="form-control" placeholder="Studio-grade USB condenser microphones for streaming and gaming" rows="3"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Create Category</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Product Modal -->
+  <div class="admin-modal-overlay" id="addProductModal">
+    <div class="admin-modal-card modal-lg">
+      <div class="admin-modal-header">
+        <div>
+          <h3 style="color: #fff; font-size: 1.2rem;">🎮 Add New Product</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Upload photos and configure complete pricing, technical specifications & features</p>
+        </div>
+        <button type="button" id="closeAddProductModal" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="productCreateForm">
+          
+          <!-- Basic Info -->
+          <div class="admin-form-group">
+            <label class="form-label">Product Title *</label>
+            <input type="text" name="prodTitle" class="form-control" placeholder="e.g. ONIKUMA K9 Pink Cat Ear Gaming Headset" required>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Model Code</label>
+              <input type="text" name="prodModelCode" class="form-control" placeholder="K9-PINK">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Category *</label>
+              <select name="prodCategory" class="form-control category-dropdown-select" required></select>
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Sale Price (Rs.) *</label>
+              <input type="number" name="prodSalePrice" class="form-control" placeholder="3200" required>
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Regular Price (Rs.)</label>
+              <input type="number" name="prodRegularPrice" class="form-control" placeholder="4500">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Offer Badge</label>
+              <select name="prodBadge" class="form-control">
+                <option value="">None</option>
+                <option value="Sale">Sale</option>
+                <option value="New Arrival">New Arrival</option>
+                <option value="Best Seller">Best Seller</option>
+                <option value="Hot Deal">Hot Deal</option>
+                <option value="Cat-Ear">Cat-Ear</option>
+              </select>
+            </div>
+            <div class="admin-form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+              <input type="checkbox" name="prodIsCatEar" id="prodIsCatEar" style="width: auto;">
+              <label for="prodIsCatEar" style="color: var(--color-sakura); font-weight: 700; cursor: pointer;">
+                🐱 Cat-Ear Series Feature Product
+              </label>
+            </div>
+          </div>
+
+          <!-- Photo Upload Section -->
+          <div class="admin-section-divider">
+            <span>📸 Product Photos (Upload from Device)</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Upload Photos (Up to 5 Photos) *</span>
+              <span style="font-size: 0.75rem; color: var(--color-cyan);">First photo will be the Cover Photo</span>
+            </label>
+            
+            <div class="photo-upload-dropzone" id="addProdDropzone">
+              <input type="file" id="addProdFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" multiple style="display: none;">
+              <div class="dropzone-inner" id="addProdDropzoneInner">
+                <span class="dropzone-icon">📁</span>
+                <div class="dropzone-text">
+                  <strong>Click to Browse Photos</strong> or Drag & Drop here
+                </div>
+                <div class="dropzone-hint">Supports JPG, PNG, WEBP — Select up to 5 photos from your computer</div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Preview Grid -->
+            <div class="photo-preview-grid" id="addProdPreviewGrid"></div>
+
+            <details style="margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">
+              <summary style="cursor: pointer; user-select: none;">Optional: Or paste direct Image URLs</summary>
+              <div class="photo-inputs-container" style="margin-top: 8px;">
+                <input type="text" id="addProdImage1" name="prodImage1" class="form-control" placeholder="1. Cover Photo URL" style="margin-bottom: 6px;">
+                <input type="text" id="addProdImage2" name="prodImage2" class="form-control" placeholder="2. Photo 2 URL" style="margin-bottom: 6px;">
+                <input type="text" id="addProdImage3" name="prodImage3" class="form-control" placeholder="3. Photo 3 URL" style="margin-bottom: 6px;">
+                <input type="text" id="addProdImage4" name="prodImage4" class="form-control" placeholder="4. Photo 4 URL" style="margin-bottom: 6px;">
+                <input type="text" id="addProdImage5" name="prodImage5" class="form-control" placeholder="5. Photo 5 URL" style="margin-bottom: 6px;">
+              </div>
+            </details>
+          </div>
+
+          <!-- Technical Specifications Section -->
+          <div class="admin-section-divider">
+            <span>⚙️ Technical Specifications (Displayed on Product Page)</span>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Driver / Transducer</label>
+              <input type="text" id="addProdSpecDriver" name="specDriver" class="form-control" placeholder="e.g. 50mm High-definition Neodymium">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Connectivity</label>
+              <input type="text" id="addProdSpecConnectivity" name="specConnectivity" class="form-control" placeholder="e.g. 3.5mm Audio/Mic Jack + USB (for RGB)">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Lighting</label>
+              <input type="text" id="addProdSpecLighting" name="specLighting" class="form-control" placeholder="e.g. Dynamic Multi-color Breathing RGB">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Microphone</label>
+              <input type="text" id="addProdSpecMic" name="specMicrophone" class="form-control" placeholder="e.g. 360° Flexible Omnidirectional Noise-Canceling">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Compatibility</label>
+              <input type="text" id="addProdSpecCompat" name="specCompatibility" class="form-control" placeholder="e.g. PC, PS4, PS5, Xbox One, Nintendo Switch, iPhone, Android">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Cable Length</label>
+              <input type="text" id="addProdSpecCable" name="specCableLength" class="form-control" placeholder="e.g. 2.2m Ultra-durable Braided Fiber Cable">
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Weight</label>
+            <input type="text" id="addProdSpecWeight" name="specWeight" class="form-control" placeholder="e.g. 390g">
+          </div>
+
+          <!-- Key Features & Highlights Section -->
+          <div class="admin-section-divider">
+            <span>⚡ Key Features & Highlights</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Key Features (One feature per line)</label>
+            <textarea id="addProdFeatures" name="prodFeatures" class="form-control" rows="4" placeholder="Enter key highlights, one per line:&#10;Detachable high-grade silicone cat ears&#10;50mm High-flux acoustic drivers&#10;Multi-color RGB glowing earcups&#10;360° Retractable noise-isolating mic&#10;Breathable memory foam headband & earcups"></textarea>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Short Description</label>
+            <textarea name="prodDesc" class="form-control" rows="2" placeholder="Brief summary of the product for catalog & previews..."></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btnSubmitAddProduct" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 800; margin-top: 10px;">
+            Save & Publish Product to Store
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Product Modal -->
+  <div class="admin-modal-overlay" id="editProductModal">
+    <div class="admin-modal-card modal-lg">
+      <div class="admin-modal-header">
+        <div>
+          <h3 style="color: #fff; font-size: 1.2rem;">✏️ Edit Product (Price, Photos & Specs)</h3>
+          <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Update product details, photos, technical specifications, and offer badges</p>
+        </div>
+        <button type="button" id="closeEditProductModal" style="color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="productEditForm">
+          <input type="hidden" id="editProdId" name="prodId">
+          
+          <!-- Basic Info -->
+          <div class="admin-form-group">
+            <label class="form-label">Product Title *</label>
+            <input type="text" id="editProdTitle" name="prodTitle" class="form-control" required>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Model Code</label>
+              <input type="text" id="editProdModelCode" name="prodModelCode" class="form-control">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Category *</label>
+              <select id="editProdCategory" name="prodCategory" class="form-control category-dropdown-select" required></select>
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Sale Price (Rs.) *</label>
+              <input type="number" id="editProdSalePrice" name="prodSalePrice" class="form-control" required>
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Regular Price (Rs.)</label>
+              <input type="number" id="editProdRegularPrice" name="prodRegularPrice" class="form-control">
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group" style="display: flex; align-items: center; gap: 8px; margin-top: 24px;">
+              <input type="checkbox" id="editProdIsDeal" name="prodIsDeal" style="width: auto;">
+              <label for="editProdIsDeal" style="color: var(--color-amber); font-weight: 700; cursor: pointer;">
+                🔥 Feature as Flash Deal / On Sale
+              </label>
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Offer Badge</label>
+              <select id="editProdBadge" name="prodBadge" class="form-control">
+                <option value="">None</option>
+                <option value="Sale">Sale</option>
+                <option value="Hot">Hot Deal</option>
+                <option value="Best Seller">Best Seller</option>
+                <option value="New">New Arrival</option>
+                <option value="Cat-Ear">Cat-Ear</option>
+              </select>
+            </div>
+          </div>
+          <div class="admin-form-group" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="editProdIsCatEar" name="prodIsCatEar" style="width: auto;">
+            <label for="editProdIsCatEar" style="color: var(--color-sakura); font-weight: 700; cursor: pointer;">
+              🐱 Cat-Ear Series Feature Product
+            </label>
+          </div>
+
+          <!-- Photo Upload Section -->
+          <div class="admin-section-divider">
+            <span>📸 Product Photos (Upload from Device)</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Product Photos (Up to 5 Photos) *</span>
+              <span style="font-size: 0.75rem; color: var(--color-cyan);">Slot 1 is Cover Photo</span>
+            </label>
+            
+            <div class="photo-upload-dropzone" id="editProdDropzone">
+              <input type="file" id="editProdFileInput" accept="image/png, image/jpeg, image/jpg, image/webp" multiple style="display: none;">
+              <div class="dropzone-inner" id="editProdDropzoneInner">
+                <span class="dropzone-icon">📁</span>
+                <div class="dropzone-text">
+                  <strong>Click to Browse Photos</strong> or Drag & Drop here
+                </div>
+                <div class="dropzone-hint">Upload new photos to add or replace current product images</div>
+              </div>
+            </div>
+
+            <!-- Thumbnail Preview Grid -->
+            <div class="photo-preview-grid" id="editProdPreviewGrid"></div>
+
+            <details style="margin-top: 8px; font-size: 0.78rem; color: var(--text-muted);">
+              <summary style="cursor: pointer; user-select: none;">Optional: Or view/edit direct Image URLs</summary>
+              <div class="photo-inputs-container" style="margin-top: 8px;">
+                <input type="text" id="editProdImage1" name="prodImage1" class="form-control" placeholder="1. Cover Photo URL" style="margin-bottom: 6px;">
+                <input type="text" id="editProdImage2" name="prodImage2" class="form-control" placeholder="2. Photo 2 URL" style="margin-bottom: 6px;">
+                <input type="text" id="editProdImage3" name="prodImage3" class="form-control" placeholder="3. Photo 3 URL" style="margin-bottom: 6px;">
+                <input type="text" id="editProdImage4" name="prodImage4" class="form-control" placeholder="4. Photo 4 URL" style="margin-bottom: 6px;">
+                <input type="text" id="editProdImage5" name="prodImage5" class="form-control" placeholder="5. Photo 5 URL" style="margin-bottom: 6px;">
+              </div>
+            </details>
+          </div>
+
+          <!-- Technical Specifications Section -->
+          <div class="admin-section-divider">
+            <span>⚙️ Technical Specifications (Displayed on Product Page)</span>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Driver / Transducer</label>
+              <input type="text" id="editProdSpecDriver" name="specDriver" class="form-control" placeholder="e.g. 50mm High-definition Neodymium">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Connectivity</label>
+              <input type="text" id="editProdSpecConnectivity" name="specConnectivity" class="form-control" placeholder="e.g. 3.5mm Audio/Mic Jack + USB (for RGB)">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Lighting</label>
+              <input type="text" id="editProdSpecLighting" name="specLighting" class="form-control" placeholder="e.g. Dynamic Multi-color Breathing RGB">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Microphone</label>
+              <input type="text" id="editProdSpecMic" name="specMicrophone" class="form-control" placeholder="e.g. 360° Flexible Omnidirectional Noise-Canceling">
+            </div>
+          </div>
+
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Compatibility</label>
+              <input type="text" id="editProdSpecCompat" name="specCompatibility" class="form-control" placeholder="e.g. PC, PS4, PS5, Xbox One, Nintendo Switch, iPhone, Android">
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Cable Length</label>
+              <input type="text" id="editProdSpecCable" name="specCableLength" class="form-control" placeholder="e.g. 2.2m Ultra-durable Braided Fiber Cable">
+            </div>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Weight</label>
+            <input type="text" id="editProdSpecWeight" name="specWeight" class="form-control" placeholder="e.g. 390g">
+          </div>
+
+          <!-- Key Features & Highlights Section -->
+          <div class="admin-section-divider">
+            <span>⚡ Key Features & Highlights</span>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Key Features (One feature per line)</label>
+            <textarea id="editProdFeatures" name="prodFeatures" class="form-control" rows="4" placeholder="Enter key highlights, one per line:&#10;Detachable high-grade silicone cat ears&#10;50mm High-flux acoustic drivers&#10;Multi-color RGB glowing earcups&#10;360° Retractable noise-isolating mic&#10;Breathable memory foam headband & earcups"></textarea>
+          </div>
+
+          <div class="admin-form-group">
+            <label class="form-label">Short Description</label>
+            <textarea id="editProdDesc" name="prodDesc" class="form-control" rows="2"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="btnSubmitEditProduct" style="width: 100%; padding: 14px; font-size: 1rem; font-weight: 800; margin-top: 10px;">
+            Save Product Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Promo Code Modal -->
+  <div class="admin-modal-overlay" id="addPromoCodeModal">
+    <div class="admin-modal-card" style="max-width: 480px;">
+      <div class="admin-modal-header">
+        <h3 style="color: #fff;">🏷️ Add New Promo Code</h3>
+        <button type="button" id="closeAddPromoCodeModal" style="color: var(--text-muted); font-size: 1.2rem;">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="promoCodeCreateForm">
+          <div class="admin-form-group">
+            <label class="form-label">Coupon Code * (e.g. GAMING15)</label>
+            <input type="text" id="promoCodeInput" name="code" class="form-control" placeholder="GAMING15" required style="text-transform: uppercase; font-family: var(--font-mono); font-weight: 700;">
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="form-label">Discount Percentage (%) *</label>
+              <input type="number" id="promoDiscountInput" name="discountPercent" class="form-control" min="1" max="90" placeholder="15" required>
+            </div>
+            <div class="admin-form-group">
+              <label class="form-label">Min. Spend in Rs.</label>
+              <input type="number" id="promoMinSpendInput" name="minSpend" class="form-control" min="0" placeholder="1000" value="1000">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Create Promo Code</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initAdmin } from '/js/admin.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initAdmin();
+    });
+  </script>
+
+</body>
+</html>
