@@ -27,7 +27,7 @@ const PORT = process.env.PORT || 5000;
 const isProduction = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
 const MONGODB_URI = process.env.MONGODB_URI || (
   isProduction
-    ? 'mongodb+srv://<db_username>:4aHQEbNob4cfJAWH@mydatabase.gimb44k.mongodb.net/onikuma_nepal?retryWrites=true&w=majority'
+    ? 'mongodb+srv://anikethyoju_db_user:4aHQEbNob4cfJAWH@mydatabase.gimb44k.mongodb.net/onikuma_nepal?retryWrites=true&w=majority'
     : 'mongodb://127.0.0.1:27017/onikuma_nepal'
 );
 
