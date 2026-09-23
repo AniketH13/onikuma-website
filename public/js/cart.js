@@ -1,5 +1,6 @@
 // Shopping Cart Module for Onikuma Nepal
 import { fetchProducts } from './api.js';
+import { showToast } from './toast.js';
 
 const CART_STORAGE_KEY = 'onikuma_nepal_cart';
 const FREE_SHIPPING_THRESHOLD = 3000; // Rs. 3,000 for free delivery in Nepal
@@ -71,7 +72,7 @@ export function getCart() {
 export function addToCart(product, quantity = 1) {
   const maxStock = product.stockCount !== undefined ? Number(product.stockCount) : 15;
   if (maxStock <= 0 || !product.inStock) {
-    alert(`Sorry, "${product.title}" is currently out of stock!`);
+    showToast(`Sorry, "${product.title}" is currently out of stock!`, 'warning');
     return;
   }
 
@@ -85,21 +86,21 @@ export function addToCart(product, quantity = 1) {
   if (existing) {
     existing.maxStock = maxStock;
     if (existing.quantity >= maxStock) {
-      alert(`Cannot add more. You already have the maximum available stock (${maxStock} units) in your cart.`);
+      showToast(`Cannot add more. You already have the maximum available stock (${maxStock} units) in your cart.`, 'warning');
       openCartDrawer();
       return;
     }
     const desired = existing.quantity + quantity;
     if (desired > maxStock) {
       existing.quantity = maxStock;
-      alert(`Only ${maxStock} items available in stock. Quantity adjusted to max available (${maxStock}).`);
+      showToast(`Only ${maxStock} items available in stock. Quantity adjusted to max available (${maxStock}).`, 'warning');
     } else {
       existing.quantity = desired;
     }
   } else {
     const qty = Math.min(quantity, maxStock);
     if (quantity > maxStock) {
-      alert(`Only ${maxStock} items available in stock. Added ${maxStock} to cart.`);
+      showToast(`Only ${maxStock} items available in stock. Added ${maxStock} to cart.`, 'warning');
     }
     cart.push({
       productId: product._id,
@@ -132,7 +133,7 @@ export function updateQuantity(productId, newQty) {
       const max = item.maxStock !== undefined ? item.maxStock : 15;
       if (newQty > max) {
         item.quantity = max;
-        alert(`You can only select up to ${max} units (available in stock).`);
+        showToast(`You can only select up to ${max} units (available in stock).`, 'warning');
       } else {
         item.quantity = newQty;
       }
@@ -273,7 +274,7 @@ export function updateCartUI() {
           if (current) {
             const max = current.maxStock !== undefined ? current.maxStock : 15;
             if (current.quantity >= max) {
-              alert(`Only ${max} items available in stock! Cannot add more.`);
+              showToast(`Only ${max} items available in stock! Cannot add more.`, 'warning');
               return;
             }
             updateQuantity(id, current.quantity + 1);

@@ -3,6 +3,7 @@ import { fetchCategories, fetchProductById, fetchProducts, fetchSettings } from 
 import { initCart, addToCart, openCartDrawer, syncCartStock } from './cart.js';
 import { initSearch } from './search.js';
 import { initCheckout, openCheckoutModal } from './checkout.js';
+import { showToast } from './toast.js';
 
 let currentProduct = null;
 let currentQuantity = 1;
@@ -217,7 +218,7 @@ function renderProductDetails(p) {
         if (isNaN(v) || v < 1) v = 1;
         if (v > stockCount) {
           v = stockCount;
-          alert(`You can only order up to ${stockCount} units (available in stock).`);
+          showToast(`You can only order up to ${stockCount} units (available in stock).`, 'warning');
         }
         currentQuantity = v;
         qtyInput.value = v;
@@ -239,7 +240,7 @@ function renderProductDetails(p) {
           currentQuantity++;
           if (qtyInput) qtyInput.value = currentQuantity;
         } else {
-          alert(`Maximum stock reached! Only ${stockCount} units available.`);
+          showToast(`Maximum stock reached! Only ${stockCount} units available.`, 'warning');
         }
       };
     }

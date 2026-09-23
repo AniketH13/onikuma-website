@@ -1,5 +1,6 @@
 // Quick View Modal Module for Onikuma Nepal
 import { addToCart } from './cart.js';
+import { showToast } from './toast.js';
 
 let currentProduct = null;
 
@@ -129,7 +130,7 @@ export function openQuickView(product) {
         if (isNaN(val) || val < 1) val = 1;
         if (val > stockCount) {
           val = stockCount;
-          alert(`You can only select up to ${stockCount} items (available in stock).`);
+          showToast(`You can only select up to ${stockCount} items (available in stock).`, 'warning');
         }
         qtyInput.value = val;
       };

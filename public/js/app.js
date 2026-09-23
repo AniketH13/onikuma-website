@@ -606,28 +606,4 @@ function toggleCategoryDropdown(show) {
 
 
 // ---------------- TOAST NOTIFICATION ---------------- //
-export function showToast(message, type = 'info') {
-  let container = document.getElementById('toastContainer');
-  if (!container) {
-    container = document.createElement('div');
-    container.id = 'toastContainer';
-    container.className = 'toast-container';
-    document.body.appendChild(container);
-  }
-
-  const toast = document.createElement('div');
-  toast.className = `toast ${type === 'success' ? 'toast-success' : ''}`;
-  toast.innerHTML = `
-    <span>${type === 'success' ? '✓' : 'ℹ️'}</span>
-    <div>${message}</div>
-  `;
-  container.appendChild(toast);
-
-  // Trigger animation
-  setTimeout(() => toast.classList.add('show'), 10);
-
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 350);
-  }, 3200);
-}
+export { showToast } from './toast.js';

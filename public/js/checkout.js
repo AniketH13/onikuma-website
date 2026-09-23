@@ -1,5 +1,6 @@
 import { getCart, getSubtotal, clearCart, closeCartDrawer, syncCartStock } from './cart.js';
 import { createOrder, fetchSettings } from './api.js';
+import { showToast } from './toast.js';
 
 const WHATSAPP_NUMBER = '9864006883'; // Official Onikuma Nepal WhatsApp Support
 const KATHMANDU_DELIVERY_FEE = 100;
@@ -63,12 +64,12 @@ export function initCheckout() {
       const subtotal = getSubtotal();
 
       if (!match) {
-        alert(`Promo code "${code}" is invalid or expired.`);
+        showToast(`Promo code "${code}" is invalid or expired.`, 'warning');
         return;
       }
 
       if (match.minSpend && subtotal < match.minSpend) {
-        alert(`Promo code "${code}" requires a minimum order of Rs. ${match.minSpend.toLocaleString()}.`);
+        showToast(`Promo code "${code}" requires a minimum order of Rs. ${match.minSpend.toLocaleString()}.`, 'warning');
         return;
       }
 
@@ -98,7 +99,7 @@ export async function openCheckoutModal() {
   await syncCartStock();
   const cart = getCart();
   if (cart.length === 0) {
-    alert('Your cart is empty! Please add products before checking out.');
+    showToast('Your cart is empty! Please add products before checking out.', 'warning');
     return;
   }
 
@@ -191,7 +192,7 @@ async function handleStandardCheckoutSubmit(e) {
   const notes = form.notes.value.trim();
 
   if (!fullName || !phone || !address || !city) {
-    alert('Please fill in all required customer details (Name, Phone, Address, City).');
+    showToast('Please fill in all required customer details (Name, Phone, Address, City).', 'warning');
     return;
   }
 
@@ -242,7 +243,7 @@ async function handleStandardCheckoutSubmit(e) {
     clearCart();
     renderSuccessModal(orderData);
   } else {
-    alert('Could not place order: ' + (response.message || 'Unknown error'));
+    showToast('Could not place order: ' + (response.message || 'Unknown error'), 'error');
   }
 }
 
