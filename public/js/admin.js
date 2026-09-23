@@ -934,14 +934,24 @@ function renderOrdersTable() {
       <td>
         <div style="font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px;">
           ${(order.items || []).map(item => {
-            const pId = item.productId ? String(item.productId) : '';
-            const titleLower = item.title ? item.title.trim().toLowerCase() : '';
-            const prod = products.find(p =>
-              (pId && (p._id === pId || p.slug === pId)) ||
-              (titleLower && p.title.trim().toLowerCase() === titleLower) ||
-              (titleLower && (p.title.toLowerCase().includes(titleLower) || titleLower.includes(p.title.toLowerCase()))) ||
-              (p.modelCode && (titleLower.includes(p.modelCode.toLowerCase()) || pId.toLowerCase().includes(p.modelCode.toLowerCase())))
-            );
+            const pId = item.productId ? String(item.productId).trim() : '';
+            const tLower = (item.title || '').trim().toLowerCase();
+            
+            // Comprehensive multi-strategy matcher
+            const prod = products.find(p => {
+              if (pId && (p._id === pId || p.slug === pId)) return true;
+              if (!tLower) return false;
+              const pTitle = (p.title || '').trim().toLowerCase();
+              if (pTitle === tLower || pTitle.includes(tLower) || tLower.includes(pTitle)) return true;
+              if (p.modelCode) {
+                const modelParts = p.modelCode.toLowerCase().split(/[-_ ]+/).filter(part => part.length >= 2);
+                if (modelParts.some(part => tLower.includes(part))) return true;
+              }
+              const itemWords = tLower.split(/\s+/).filter(w => w.length > 2 && !['gaming','headset','mouse','keyboard','onikuma','rgb'].includes(w));
+              if (itemWords.length > 0 && itemWords.some(w => pTitle.includes(w))) return true;
+              return false;
+            });
+
             const stockCount = prod && prod.stockCount !== undefined ? prod.stockCount : null;
             const stockBadge = stockCount !== null
               ? `<span class="badge ${stockCount > 5 ? 'badge-stock' : (stockCount > 0 ? 'status-pending' : 'badge-hot')}" style="font-size:0.7rem;padding:2px 7px;border-radius:4px;font-weight:700;" title="Remaining inventory units in store">Stock: ${stockCount} left</span>`
