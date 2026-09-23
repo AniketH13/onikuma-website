@@ -26,23 +26,43 @@ export const fallbackStore = {
   }
 };
 
+let cachedPromise = null;
+
 export async function connectDB(uri) {
-  try {
-    console.log(`Connecting to MongoDB at: ${uri}...`);
-    await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 4000
-    });
+  // If already connected, return immediately
+  if (mongoose.connection && mongoose.connection.readyState >= 1) {
     isMongoConnected = true;
-    console.log('✅ MongoDB connected successfully!');
+    return;
+  }
 
-    // Check & Seed data if collections are empty
-    await autoSeedDatabase();
+  // Safe display URI with masked credentials for logging
+  const safeLogUri = uri ? uri.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'undefined';
 
-  } catch (error) {
-    isMongoConnected = false;
-    console.warn('⚠️ Could not connect to local MongoDB directly:', error.message);
-    console.warn('💡 Using resilient in-memory fallback store so the storefront and admin panel remain 100% functional.');
-    console.warn('💡 To use live MongoDB, ensure mongod is running at ' + uri);
+  if (!cachedPromise) {
+    console.log(`Connecting to MongoDB at: ${safeLogUri}...`);
+    cachedPromise = mongoose.connect(uri, {
+      serverSelectionTimeoutMS: 5000,
+      connectTimeoutMS: 10000,
+      socketTimeoutMS: 45000
+    }).then(async (m) => {
+      isMongoConnected = true;
+      console.log('✅ MongoDB connected successfully!');
+      // Check & Seed data if collections are empty (seeds cloud or local DB on first run)
+      await autoSeedDatabase();
+      return m;
+    }).catch((error) => {
+      cachedPromise = null;
+      isMongoConnected = false;
+      console.warn('⚠️ Could not connect to MongoDB:', error.message);
+      console.warn('💡 Using resilient in-memory fallback store so the storefront and admin panel remain 100% functional.');
+      console.warn('💡 Target URI was: ' + safeLogUri);
+    });
+  }
+
+  try {
+    await cachedPromise;
+  } catch (e) {
+    // Already handled in catch block above
   }
 }
 
