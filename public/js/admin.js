@@ -162,9 +162,18 @@ function setupTabs() {
       const targetPane = document.getElementById(tabId);
       if (targetPane) targetPane.classList.add('active');
 
+      const tabTitleMap = {
+        dashboardTab: 'Dashboard Overview',
+        salesTab: 'Sales Report',
+        categoriesTab: 'Category Management',
+        productsTab: 'Product Management',
+        ordersTab: 'Orders & Fulfillment',
+        offersTab: 'Special Offers & Promotions',
+        bannersTab: 'Banner Management',
+        settingsTab: 'Store Settings'
+      };
       if (pageTitle) {
-        const titleText = tab.querySelector('span') ? tab.querySelector('span').textContent : 'Admin';
-        pageTitle.textContent = titleText;
+        pageTitle.textContent = tabTitleMap[tabId] || 'Admin Console';
       }
 
       // Lazy-load data when switching to Sales tab
@@ -710,6 +719,7 @@ function startOrderPolling() {
       if (latestOrders.length !== orders.length) {
         orders = latestOrders;
         renderOrdersTable();
+        refreshDashboard();
       }
     } catch (e) {
       console.warn('Order polling error:', e);
@@ -970,6 +980,7 @@ function renderOrdersTable() {
         }
         await refreshProducts();
         renderOrdersTable();
+        refreshDashboard();
       } else {
         alert('Could not update status: ' + res.message);
         renderOrdersTable();

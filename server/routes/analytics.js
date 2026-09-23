@@ -47,11 +47,21 @@ router.get('/', async (req, res) => {
     }
 
     let filtered = allOrders;
-    const fromDate = from ? new Date(from) : null;
-    const toDate   = to   ? new Date(to + 'T23:59:59') : null;
+    let fromDate = null;
+    let toDate   = null;
+    if (from) {
+      const parsedFrom = new Date(from.includes('T') ? from : from + 'T00:00:00');
+      if (!isNaN(parsedFrom.getTime())) fromDate = parsedFrom;
+    }
+    if (to) {
+      const parsedTo = new Date(to.includes('T') ? to : to + 'T23:59:59.999');
+      if (!isNaN(parsedTo.getTime())) toDate = parsedTo;
+    }
+
     if (fromDate || toDate) {
       filtered = allOrders.filter(o => {
-        const d = new Date(o.createdAt);
+        const d = o.createdAt ? new Date(o.createdAt) : null;
+        if (!d || isNaN(d.getTime())) return true;
         if (fromDate && d < fromDate) return false;
         if (toDate   && d > toDate)   return false;
         return true;
@@ -59,24 +69,25 @@ router.get('/', async (req, res) => {
     }
 
     const deliveredAll = allOrders.filter(o => o.status === 'Delivered');
-    const totalRevenue = deliveredAll.reduce((s, o) => s + (o.total || 0), 0);
+    const totalRevenue = deliveredAll.reduce((s, o) => s + (Number(o.total) || 0), 0);
     const totalOrders  = allOrders.length;
     const uniqueCustomers = countUniqueCustomers(allOrders);
 
     const salesOrders = filtered;
     const filteredRevenue = salesOrders
       .filter(o => o.status !== 'Cancelled' && o.status !== 'Returned')
-      .reduce((s, o) => s + (o.total || 0), 0);
+      .reduce((s, o) => s + (Number(o.total) || 0), 0);
 
     const byDate = {};
     salesOrders.forEach(order => {
-      const dateKey = new Date(order.createdAt).toISOString().slice(0, 10);
+      const d = order.createdAt ? new Date(order.createdAt) : new Date();
+      const dateKey = !isNaN(d.getTime()) ? d.toISOString().slice(0, 10) : 'Unknown Date';
       if (!byDate[dateKey]) {
         byDate[dateKey] = { date: dateKey, orders: 0, revenue: 0, delivered: 0, cancelled: 0, pending: 0 };
       }
       byDate[dateKey].orders++;
       if (order.status !== 'Cancelled' && order.status !== 'Returned') {
-        byDate[dateKey].revenue += order.total || 0;
+        byDate[dateKey].revenue += Number(order.total) || 0;
       }
       if (order.status === 'Delivered') byDate[dateKey].delivered++;
       if (order.status === 'Cancelled') byDate[dateKey].cancelled++;
@@ -92,10 +103,12 @@ router.get('/', async (req, res) => {
     const productSales = {};
     deliveredAll.forEach(order => {
       (order.items || []).forEach(item => {
-        const key = item.title || 'Unknown';
+        const key = item.title || 'Unknown Product';
         if (!productSales[key]) productSales[key] = { title: key, qty: 0, revenue: 0 };
-        productSales[key].qty += item.quantity || 1;
-        productSales[key].revenue += (item.price || 0) * (item.quantity || 1);
+        const qty = Number(item.quantity) || 1;
+        const price = Number(item.price) || 0;
+        productSales[key].qty += qty;
+        productSales[key].revenue += price * qty;
       });
     });
     const topProducts = Object.values(productSales)
