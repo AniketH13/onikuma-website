@@ -36,20 +36,6 @@ app.use(cors());
 app.use(express.json({ limit: '25mb' }));
 app.use(express.urlencoded({ extended: true, limit: '25mb' }));
 
-// Ensure database connection for serverless invocations (Vercel)
-app.use(async (req, res, next) => {
-  if (req.path.startsWith('/api') && req.path !== '/api/health') {
-    if (!getMongoStatus()) {
-      try {
-        await connectDB(MONGODB_URI);
-      } catch (e) {
-        // In-memory fallback handles requests seamlessly if DB connection times out
-      }
-    }
-  }
-  next();
-});
-
 // Serve static frontend files (including uploaded media)
 app.use(express.static(path.join(rootDir, 'public')));
 

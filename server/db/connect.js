@@ -26,11 +26,14 @@ export const fallbackStore = {
   }
 };
 
+// Disable command buffering so operations fail fast and fallback store answers instantly
+mongoose.set('bufferCommands', false);
+
 let cachedPromise = null;
 
 export async function connectDB(uri) {
   // If already connected, return immediately
-  if (mongoose.connection && mongoose.connection.readyState >= 1) {
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
     isMongoConnected = true;
     return;
   }
@@ -62,12 +65,12 @@ export async function connectDB(uri) {
   try {
     await cachedPromise;
   } catch (e) {
-    // Already handled in catch block above
+    // Handled in catch block above
   }
 }
 
 export function getMongoStatus() {
-  return isMongoConnected;
+  return Boolean(mongoose.connection && mongoose.connection.readyState === 1);
 }
 
 export async function autoSeedDatabase() {
