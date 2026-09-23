@@ -59,6 +59,27 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 2px var(--color-primary-glow);
 }
 
+/* Remove browser spin arrows that compress two-digit numbers */
+.pdp-qty-input,
+.qv-qty-input,
+.stock-qty-input,
+input[type="number"].no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pdp-qty-input::-webkit-outer-spin-button,
+.pdp-qty-input::-webkit-inner-spin-button,
+.qv-qty-input::-webkit-outer-spin-button,
+.qv-qty-input::-webkit-inner-spin-button,
+.stock-qty-input::-webkit-outer-spin-button,
+.stock-qty-input::-webkit-inner-spin-button,
+input[type="number"].no-spinner::-webkit-outer-spin-button,
+input[type="number"].no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 /* Layout Utilities */
 .container {
   max-width: 1360px;

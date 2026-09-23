@@ -260,18 +260,23 @@
   background: var(--bg-surface);
   overflow: hidden;
   height: 48px;
+  min-width: 142px;
 }
 
 .pdp-qty-btn {
   background: transparent;
   border: none;
   color: #FFFFFF;
-  width: 40px;
+  width: 42px;
   height: 100%;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   cursor: pointer;
   transition: background var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
 }
 
 .pdp-qty-btn:hover {
@@ -279,15 +284,25 @@
 }
 
 .pdp-qty-input {
-  width: 50px;
+  width: 58px;
+  min-width: 58px;
   height: 100%;
   background: transparent;
   border: none;
   text-align: center;
   color: #FFFFFF;
-  font-weight: 700;
-  font-size: 1rem;
+  font-weight: 800;
+  font-size: 1.1rem;
   outline: none;
+  padding: 0 4px;
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.pdp-qty-input::-webkit-outer-spin-button,
+.pdp-qty-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .btn-pdp-add {
