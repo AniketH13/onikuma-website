@@ -250,3 +250,17 @@ export async function uploadImages(imagesArray) {
 }
 
 
+
+export async function fetchAnalytics(params = {}) {
+  try {
+    const query = new URLSearchParams();
+    if (params.from) query.set('from', params.from);
+    if (params.to)   query.set('to',   params.to);
+    const res = await fetch(`${API_BASE}/analytics?${query.toString()}`);
+    const data = await res.json();
+    return data.success ? data.data : null;
+  } catch (err) {
+    console.error('Error fetching analytics:', err);
+    return null;
+  }
+}

@@ -4,6 +4,7 @@ import {
   fetchProducts, createProduct, updateProduct, deleteProduct, updateProductStock,
   fetchOrders, updateOrderStatus,
   fetchSettings, updateSettings,
+  fetchAnalytics,
   checkHealth, loginAdmin, verifyAdminSession,
   uploadImage, uploadImages
 } from './api.js';
@@ -50,6 +51,7 @@ async function unlockDashboard(username = 'admin') {
   if (usernameBadge) usernameBadge.textContent = username;
 
   await loadDBStatus();
+  await refreshDashboard();
   await refreshCategories();
   await refreshProducts();
   await refreshOrders();
@@ -164,6 +166,10 @@ function setupTabs() {
         const titleText = tab.querySelector('span') ? tab.querySelector('span').textContent : 'Admin';
         pageTitle.textContent = titleText;
       }
+
+      // Lazy-load data when switching to Sales tab
+      if (tabId === 'salesTab') refreshSales();
+      if (tabId === 'dashboardTab') refreshDashboard();
     });
   });
 }
@@ -1352,4 +1358,224 @@ function showAdminToast(msg) {
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 400);
   }, 3000);
+}
+
+// ---------------- DASHBOARD ---------------- //
+export async function refreshDashboard() {
+  const data = await fetchAnalytics();
+  if (!data) return;
+
+  const fmt = n => 'Rs. ' + (n || 0).toLocaleString('en-IN');
+
+  // Stat cards
+  const el = id => document.getElementById(id);
+  if (el('dashTotalProducts'))   el('dashTotalProducts').textContent   = data.summary.totalProducts || 0;
+  if (el('dashTotalRevenue'))    el('dashTotalRevenue').textContent    = fmt(data.summary.totalRevenue);
+  if (el('dashTotalOrders'))     el('dashTotalOrders').textContent     = data.summary.totalOrders || 0;
+  if (el('dashUniqueCustomers')) el('dashUniqueCustomers').textContent = data.summary.uniqueCustomers || 0;
+
+  // Status breakdown
+  const statusList = el('dashStatusList');
+  if (statusList) {
+    const statusColors = {
+      Pending: '#f59e0b', Confirmed: '#6366f1', Processing: '#3b82f6',
+      Dispatched: '#8b5cf6', Delivered: '#10b981', Cancelled: '#ef4444', Returned: '#64748b'
+    };
+    const breakdown = data.statusBreakdown || {};
+    const total = Object.values(breakdown).reduce((a, b) => a + b, 0) || 1;
+    statusList.innerHTML = Object.entries(breakdown).map(([status, count]) => {
+      const pct = Math.round((count / total) * 100);
+      const color = statusColors[status] || '#888';
+      return `
+        <div class="dash-status-row">
+          <div class="dash-status-meta">
+            <span class="dash-status-dot" style="background:${color};"></span>
+            <span class="dash-status-name">${status}</span>
+            <span class="dash-status-count">${count}</span>
+          </div>
+          <div class="dash-status-bar-wrap">
+            <div class="dash-status-bar" style="width:${pct}%;background:${color};"></div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // Top products
+  const topProdsEl = el('dashTopProducts');
+  if (topProdsEl) {
+    const topProds = data.topProducts || [];
+    if (topProds.length === 0) {
+      topProdsEl.innerHTML = `<div class="dash-loading">No delivered orders yet.</div>`;
+    } else {
+      topProdsEl.innerHTML = topProds.map((p, i) => `
+        <div class="dash-top-prod-row">
+          <span class="dash-top-prod-rank">#${i + 1}</span>
+          <div class="dash-top-prod-info">
+            <span class="dash-top-prod-title">${p.title}</span>
+            <span class="dash-top-prod-meta">${p.qty} units sold</span>
+          </div>
+          <span class="dash-top-prod-rev">Rs. ${(p.revenue || 0).toLocaleString('en-IN')}</span>
+        </div>`).join('');
+    }
+  }
+
+  // Recent orders
+  renderRecentOrders(data.recentOrders || []);
+
+  // Wire "View All Orders" button
+  const viewAllBtn = el('dashViewAllOrders');
+  if (viewAllBtn && !viewAllBtn._wired) {
+    viewAllBtn._wired = true;
+    viewAllBtn.addEventListener('click', () => {
+      const ordersBtn = document.querySelector('.admin-nav-btn[data-tab="ordersTab"]');
+      if (ordersBtn) ordersBtn.click();
+    });
+  }
+}
+
+function renderRecentOrders(orders) {
+  const tbody = document.getElementById('dashRecentOrdersBody');
+  if (!tbody) return;
+
+  const statusColors = {
+    Pending: '#f59e0b', Confirmed: '#6366f1', Processing: '#3b82f6',
+    Dispatched: '#8b5cf6', Delivered: '#10b981', Cancelled: '#ef4444', Returned: '#64748b'
+  };
+
+  const slice = orders.slice(0, 10);
+  if (slice.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No orders yet.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = slice.map(o => {
+    const date = new Date(o.createdAt).toLocaleDateString('en-NP', { day:'2-digit', month:'short', year:'numeric' });
+    const color = statusColors[o.status] || '#888';
+    return `<tr>
+      <td><code style="font-size:0.78rem;color:var(--color-primary);">${o.orderNumber}</code></td>
+      <td>${o.customer?.fullName || '—'}</td>
+      <td>${o.customer?.phone || '—'}</td>
+      <td><strong>Rs. ${(o.total || 0).toLocaleString('en-IN')}</strong></td>
+      <td><span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}44;padding:3px 8px;border-radius:999px;font-size:0.75rem;">${o.status}</span></td>
+      <td style="font-size:0.8rem;color:var(--text-secondary);">${date}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ---------------- SALES REPORT ---------------- //
+let lastSalesData = null;
+
+export async function refreshSales(params = {}) {
+  const data = await fetchAnalytics(params);
+  if (!data) return;
+  lastSalesData = data;
+
+  const el = id => document.getElementById(id);
+  const fmt = n => 'Rs. ' + (n || 0).toLocaleString('en-IN');
+
+  // Filtered summary
+  if (el('salesFilteredOrders')) el('salesFilteredOrders').textContent = data.summary.filteredOrders;
+  if (el('salesFilteredRevenue')) el('salesFilteredRevenue').textContent = fmt(data.summary.filteredRevenue);
+
+  // Daily sales table
+  const tbody = el('salesByDateBody');
+  if (tbody) {
+    const rows = data.salesByDate || [];
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No data for selected range.</td></tr>`;
+    } else {
+      tbody.innerHTML = rows.map(r => `<tr>
+        <td><strong>${r.date}</strong></td>
+        <td>${r.orders}</td>
+        <td><strong>Rs. ${(r.revenue || 0).toLocaleString('en-IN')}</strong></td>
+        <td><span style="color:#10b981;">${r.delivered}</span></td>
+        <td><span style="color:#f59e0b;">${r.pending}</span></td>
+        <td><span style="color:#ef4444;">${r.cancelled}</span></td>
+      </tr>`).join('');
+    }
+  }
+
+  // Individual orders table
+  const ordersTbody = el('salesOrdersBody');
+  if (ordersTbody) {
+    const orders = data.recentOrders || [];
+    const statusColors = {
+      Pending: '#f59e0b', Confirmed: '#6366f1', Processing: '#3b82f6',
+      Dispatched: '#8b5cf6', Delivered: '#10b981', Cancelled: '#ef4444', Returned: '#64748b'
+    };
+    const payLabels = { cod: 'Cash on Delivery', esewa: 'eSewa', khalti: 'Khalti', fonepay: 'FonePay', whatsapp: 'WhatsApp' };
+    if (orders.length === 0) {
+      ordersTbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);">No orders for selected range.</td></tr>`;
+    } else {
+      ordersTbody.innerHTML = orders.map(o => {
+        const itemSummary = (o.items || []).map(i => `${i.title} ×${i.quantity}`).join(', ');
+        const date = new Date(o.createdAt).toLocaleDateString('en-NP', { day:'2-digit', month:'short', year:'numeric' });
+        const color = statusColors[o.status] || '#888';
+        return `<tr>
+          <td><code style="font-size:0.78rem;color:var(--color-primary);">${o.orderNumber}</code></td>
+          <td>${o.customer?.fullName || '—'}</td>
+          <td>${o.customer?.phone || '—'}</td>
+          <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${itemSummary}">${itemSummary}</td>
+          <td><strong>Rs. ${(o.total || 0).toLocaleString('en-IN')}</strong></td>
+          <td style="font-size:0.78rem;">${payLabels[o.paymentMethod] || o.paymentMethod}</td>
+          <td><span class="badge" style="background:${color}22;color:${color};border:1px solid ${color}44;padding:3px 8px;border-radius:999px;font-size:0.75rem;">${o.status}</span></td>
+          <td style="font-size:0.8rem;color:var(--text-secondary);">${date}</td>
+        </tr>`;
+      }).join('');
+    }
+  }
+
+  // Wire filter buttons (only once)
+  setupSalesFilters();
+}
+
+let salesFiltersWired = false;
+function setupSalesFilters() {
+  if (salesFiltersWired) return;
+  salesFiltersWired = true;
+
+  const applyBtn = document.getElementById('btnApplySalesFilter');
+  const clearBtn = document.getElementById('btnClearSalesFilter');
+  const exportBtn = document.getElementById('btnExportSalesCSV');
+
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      const from = document.getElementById('salesFromDate')?.value;
+      const to   = document.getElementById('salesToDate')?.value;
+      refreshSales({ from, to });
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      const fromInput = document.getElementById('salesFromDate');
+      const toInput   = document.getElementById('salesToDate');
+      if (fromInput) fromInput.value = '';
+      if (toInput)   toInput.value   = '';
+      refreshSales();
+    });
+  }
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportSalesCSV);
+  }
+}
+
+function exportSalesCSV() {
+  if (!lastSalesData) return;
+  const rows = lastSalesData.salesByDate || [];
+  if (rows.length === 0) { alert('No data to export.'); return; }
+
+  const header = ['Date', 'Orders', 'Revenue (NPR)', 'Delivered', 'Pending', 'Cancelled'];
+  const csvRows = [header.join(','), ...rows.map(r =>
+    [r.date, r.orders, r.revenue, r.delivered, r.pending, r.cancelled].join(',')
+  )];
+
+  const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `onikuma-sales-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
 }

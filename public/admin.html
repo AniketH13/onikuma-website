@@ -73,7 +73,17 @@
       </div>
 
       <nav class="admin-sidebar-nav">
-        <button class="admin-nav-btn active" data-tab="categoriesTab">
+        <button class="admin-nav-btn active" data-tab="dashboardTab">
+          <span class="admin-nav-icon">🏠</span>
+          <span>Dashboard</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="salesTab">
+          <span class="admin-nav-icon">📈</span>
+          <span>Sales Report</span>
+        </button>
+
+        <button class="admin-nav-btn" data-tab="categoriesTab">
           <span class="admin-nav-icon">📁</span>
           <span>Categories</span>
         </button>
@@ -152,9 +162,185 @@
 
       <!-- Admin Content Tab Panes -->
       <div class="admin-content">
-        
+
+        <!-- Tab 0: Dashboard -->
+        <div class="admin-tab-pane active" id="dashboardTab">
+
+          <!-- Summary Stat Cards -->
+          <div class="dash-stats-grid">
+            <div class="dash-stat-card" style="--card-accent: #FF2E63;">
+              <div class="dash-stat-icon">🎮</div>
+              <div class="dash-stat-body">
+                <div class="dash-stat-label">Total Products</div>
+                <div class="dash-stat-value" id="dashTotalProducts">—</div>
+              </div>
+            </div>
+            <div class="dash-stat-card" style="--card-accent: #10b981;">
+              <div class="dash-stat-icon">💰</div>
+              <div class="dash-stat-body">
+                <div class="dash-stat-label">Total Revenue (Delivered)</div>
+                <div class="dash-stat-value" id="dashTotalRevenue">—</div>
+              </div>
+            </div>
+            <div class="dash-stat-card" style="--card-accent: #6366f1;">
+              <div class="dash-stat-icon">📦</div>
+              <div class="dash-stat-body">
+                <div class="dash-stat-label">Total Orders</div>
+                <div class="dash-stat-value" id="dashTotalOrders">—</div>
+              </div>
+            </div>
+            <div class="dash-stat-card" style="--card-accent: #f59e0b;">
+              <div class="dash-stat-icon">👥</div>
+              <div class="dash-stat-body">
+                <div class="dash-stat-label">Unique Customers</div>
+                <div class="dash-stat-value" id="dashUniqueCustomers">—</div>
+                <div class="dash-stat-sub">Distinct by phone &amp; name</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Status Breakdown + Top Products -->
+          <div class="dash-lower-grid">
+
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div><h3 style="font-size:1.05rem;color:#fff;">Order Status Breakdown</h3></div>
+              </div>
+              <div class="dash-status-list" id="dashStatusList">
+                <div class="dash-loading">Loading...</div>
+              </div>
+            </div>
+
+            <div class="admin-card">
+              <div class="admin-card-header">
+                <div><h3 style="font-size:1.05rem;color:#fff;">🏆 Top Selling Products</h3></div>
+              </div>
+              <div class="dash-top-products" id="dashTopProducts">
+                <div class="dash-loading">Loading...</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Recent Orders Quick View -->
+          <div class="admin-card" style="margin-top: 20px;">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size:1.05rem;color:#fff;">Recent Orders</h3>
+                <p style="font-size:0.8rem;color:var(--text-secondary);">Last 10 orders across all statuses</p>
+              </div>
+              <button class="btn btn-secondary" id="dashViewAllOrders" style="font-size:0.82rem;padding:7px 14px;">View All Orders</button>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="dashRecentOrdersBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+
+        <!-- Tab 0b: Sales Report -->
+        <div class="admin-tab-pane" id="salesTab">
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 style="font-size:1.15rem;color:#fff;">📈 Sales Report</h3>
+                <p style="font-size:0.82rem;color:var(--text-secondary);">Filter by date range to view orders and revenue breakdown.</p>
+              </div>
+            </div>
+
+            <!-- Date Filter Row -->
+            <div class="sales-filter-bar">
+              <div class="sales-filter-group">
+                <label class="form-label">From Date</label>
+                <input type="date" id="salesFromDate" class="form-control" style="max-width:160px;">
+              </div>
+              <div class="sales-filter-group">
+                <label class="form-label">To Date</label>
+                <input type="date" id="salesToDate" class="form-control" style="max-width:160px;">
+              </div>
+              <div class="sales-filter-group" style="align-self:flex-end;">
+                <button class="btn btn-primary" id="btnApplySalesFilter" style="padding:9px 20px;">Apply Filter</button>
+                <button class="btn btn-secondary" id="btnClearSalesFilter" style="padding:9px 14px;">Clear</button>
+              </div>
+            </div>
+
+            <!-- Summary boxes for filtered range -->
+            <div class="sales-summary-row">
+              <div class="sales-summary-box">
+                <div class="sales-summary-label">Orders in Range</div>
+                <div class="sales-summary-val" id="salesFilteredOrders">—</div>
+              </div>
+              <div class="sales-summary-box" style="--box-color:#10b981;">
+                <div class="sales-summary-label">Revenue in Range</div>
+                <div class="sales-summary-val" id="salesFilteredRevenue">—</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Sales by Date Table -->
+          <div class="admin-card" style="margin-top:20px;">
+            <div class="admin-card-header">
+              <div><h3 style="font-size:1.05rem;color:#fff;">Daily Sales Breakdown</h3></div>
+              <button class="btn btn-secondary" id="btnExportSalesCSV" style="font-size:0.8rem;padding:7px 14px;">⬇ Export CSV</button>
+            </div>
+            <table class="admin-table" id="salesByDateTable">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Orders</th>
+                  <th>Revenue (NPR)</th>
+                  <th>Delivered</th>
+                  <th>Pending</th>
+                  <th>Cancelled</th>
+                </tr>
+              </thead>
+              <tbody id="salesByDateBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Individual Orders in Range -->
+          <div class="admin-card" style="margin-top:20px;">
+            <div class="admin-card-header">
+              <div><h3 style="font-size:1.05rem;color:#fff;">Order Details</h3></div>
+            </div>
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Customer</th>
+                  <th>Phone</th>
+                  <th>Items</th>
+                  <th>Total</th>
+                  <th>Payment</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="salesOrdersBody">
+                <tr><td colspan="8" style="text-align:center;color:var(--text-muted);">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+
         <!-- Tab 1: Categories -->
-        <div class="admin-tab-pane active" id="categoriesTab">
+        <div class="admin-tab-pane" id="categoriesTab">
           <div class="admin-card">
             <div class="admin-card-header">
               <div>

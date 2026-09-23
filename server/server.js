@@ -11,6 +11,7 @@ import settingsRouter from './routes/settings.js';
 import authRouter from './routes/auth.js';
 
 import uploadRouter from './routes/upload.js';
+import analyticsRouter from './routes/analytics.js';
 
 dotenv.config();
 
@@ -46,6 +47,7 @@ app.use('/api/products', productsRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/analytics', analyticsRouter);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
