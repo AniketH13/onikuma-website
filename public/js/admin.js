@@ -289,7 +289,7 @@ function renderProductsTable() {
       </td>
       <td>
         <span class="badge ${prod.inStock ? 'badge-stock' : 'badge-hot'}">
-          ${prod.inStock ? 'In Stock' : 'Out of Stock'}
+          ${prod.inStock ? `In Stock (${prod.stockCount !== undefined ? prod.stockCount : 15})` : 'Out of Stock (0)'}
         </span>
       </td>
       <td>
@@ -932,8 +932,37 @@ function renderOrdersTable() {
         <div style="font-size: 0.75rem; color: var(--text-muted);">${order.customer ? order.customer.address + ', ' + order.customer.city : ''}</div>
       </td>
       <td>
-        <div style="font-size: 0.82rem;">
-          ${(order.items || []).map(item => `${item.title} (x${item.quantity})`).join('<br>')}
+        <div style="font-size: 0.82rem; display: flex; flex-direction: column; gap: 6px;">
+          ${(order.items || []).map(item => {
+            const pId = item.productId ? String(item.productId) : '';
+            const titleLower = item.title ? item.title.trim().toLowerCase() : '';
+            const prod = products.find(p =>
+              (pId && (p._id === pId || p.slug === pId)) ||
+              (titleLower && p.title.trim().toLowerCase() === titleLower) ||
+              (titleLower && (p.title.toLowerCase().includes(titleLower) || titleLower.includes(p.title.toLowerCase()))) ||
+              (p.modelCode && (titleLower.includes(p.modelCode.toLowerCase()) || pId.toLowerCase().includes(p.modelCode.toLowerCase())))
+            );
+            const stockCount = prod && prod.stockCount !== undefined ? prod.stockCount : null;
+            const stockBadge = stockCount !== null
+              ? `<span class="badge ${stockCount > 5 ? 'badge-stock' : (stockCount > 0 ? 'status-pending' : 'badge-hot')}" style="font-size:0.7rem;padding:2px 7px;border-radius:4px;font-weight:700;" title="Remaining inventory units in store">Stock: ${stockCount} left</span>`
+              : '';
+            return `
+              <div>
+                <strong>${item.title}</strong>
+                <span style="color:var(--text-muted);font-weight:700;"> (×${item.quantity})</span>
+                ${stockBadge}
+              </div>`;
+          }).join('')}
+          ${order.stockDeducted
+            ? `<div style="font-size:0.72rem;color:var(--color-emerald);font-weight:700;display:flex;align-items:center;gap:4px;">
+                <span>✓</span> Stock deducted from inventory
+               </div>`
+            : (order.status === 'Cancelled'
+                ? `<div style="font-size:0.72rem;color:var(--text-muted);">Cancelled (No stock deducted)</div>`
+                : (order.status === 'Returned'
+                    ? `<div style="font-size:0.72rem;color:var(--color-cyan);">↩ Returned (Stock restored)</div>`
+                    : `<div style="font-size:0.72rem;color:var(--color-gold);">Pending delivery (Stock reserved)</div>`))
+          }
         </div>
       </td>
       <td>

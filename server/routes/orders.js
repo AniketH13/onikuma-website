@@ -5,8 +5,14 @@ import { getMongoStatus, fallbackStore } from '../db/connect.js';
 
 const router = express.Router();
 
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 /**
  * Helper to adjust product stock count and inStock status when an order is delivered or reverted.
+ * Supports multi-tier resolution: ObjectId, slug, exact title, case-insensitive title,
+ * fuzzy title keywords, and modelCode.
  * @param {Object} order The order object containing items
  * @param {boolean} deduct If true, decreases stock; if false, restores stock
  */
@@ -17,18 +23,45 @@ async function adjustStockForOrder(order, deduct = true) {
     for (const item of order.items) {
       const qty = Number(item.quantity) || 1;
       let prod = null;
+      const pIdStr = item.productId ? String(item.productId).trim() : '';
+      const titleClean = item.title ? String(item.title).trim() : '';
 
       // 1. Try productId if valid ObjectId
-      if (item.productId && typeof item.productId === 'string' && item.productId.match(/^[0-9a-fA-F]{24}$/)) {
-        prod = await Product.findById(item.productId);
+      if (pIdStr && pIdStr.match(/^[0-9a-fA-F]{24}$/)) {
+        try {
+          prod = await Product.findById(pIdStr);
+        } catch (e) {
+          prod = null;
+        }
       }
       // 2. Try slug lookup
-      if (!prod && item.productId) {
-        prod = await Product.findOne({ slug: item.productId });
+      if (!prod && pIdStr) {
+        prod = await Product.findOne({ slug: pIdStr });
       }
-      // 3. Fallback to product title match
-      if (!prod && item.title) {
-        prod = await Product.findOne({ title: item.title });
+      // 3. Fallback to product title match (exact)
+      if (!prod && titleClean) {
+        prod = await Product.findOne({ title: titleClean });
+      }
+      // 4. Case-insensitive exact title match
+      if (!prod && titleClean) {
+        prod = await Product.findOne({ title: new RegExp('^' + escapeRegex(titleClean) + '$', 'i') });
+      }
+      // 5. Title keyword / partial match
+      if (!prod && titleClean) {
+        const words = titleClean.split(/\s+/).filter(w => w.length >= 2);
+        if (words.length > 0) {
+          const regexStr = words.map(escapeRegex).join('.*');
+          prod = await Product.findOne({ title: new RegExp(regexStr, 'i') });
+        }
+      }
+      // 6. Model code match
+      if (!prod) {
+        const searchTerms = `${pIdStr} ${titleClean}`.toLowerCase();
+        const allProds = await Product.find().lean();
+        const matched = allProds.find(p => p.modelCode && searchTerms.includes(p.modelCode.toLowerCase()));
+        if (matched) {
+          prod = await Product.findById(matched._id);
+        }
       }
 
       if (prod) {
@@ -37,22 +70,35 @@ async function adjustStockForOrder(order, deduct = true) {
         prod.stockCount = newStock;
         prod.inStock = newStock > 0;
         await prod.save();
+        console.log(`[MongoDB Stock Adjusted] "${prod.title}": ${currentStock} -> ${newStock} (${deduct ? '-' : '+'}${qty})`);
+      } else {
+        console.warn(`[MongoDB Stock Adjustment Warning] Product not found for order item:`, item);
       }
     }
   } else {
     // Resilient fallback in-memory store
     for (const item of order.items) {
       const qty = Number(item.quantity) || 1;
-      const prod = fallbackStore.products.find(p =>
-        (item.productId && (p._id === item.productId || p.slug === item.productId)) ||
-        (item.title && p.title === item.title)
-      );
+      const pIdStr = item.productId ? String(item.productId).trim() : '';
+      const titleLower = item.title ? String(item.title).trim().toLowerCase() : '';
+
+      const prod = fallbackStore.products.find(p => {
+        if (pIdStr && (p._id === pIdStr || p.slug === pIdStr)) return true;
+        const pTitle = p.title.trim().toLowerCase();
+        if (titleLower && pTitle === titleLower) return true;
+        if (titleLower && (pTitle.includes(titleLower) || titleLower.includes(pTitle))) return true;
+        if (p.modelCode && (titleLower.includes(p.modelCode.toLowerCase()) || pIdStr.toLowerCase().includes(p.modelCode.toLowerCase()))) return true;
+        return false;
+      });
 
       if (prod) {
         const currentStock = prod.stockCount !== undefined ? Number(prod.stockCount) : 15;
         const newStock = deduct ? Math.max(0, currentStock - qty) : currentStock + qty;
         prod.stockCount = newStock;
         prod.inStock = newStock > 0;
+        console.log(`[Fallback Stock Adjusted] "${prod.title}": ${currentStock} -> ${newStock} (${deduct ? '-' : '+'}${qty})`);
+      } else {
+        console.warn(`[Fallback Stock Adjustment Warning] Product not found for order item:`, item);
       }
     }
   }
@@ -116,7 +162,10 @@ router.post('/', async (req, res) => {
 
     const orderPayload = {
       orderNumber,
-      customer,
+      customer: {
+        ...customer,
+        city: customer.city || customer.district || 'Kathmandu'
+      },
       items,
       subtotal: Number(subtotal),
       deliveryFee: Number(deliveryFee || 0),
@@ -160,7 +209,13 @@ router.patch('/:id/status', async (req, res) => {
     }
 
     if (getMongoStatus()) {
-      const order = await Order.findById(id);
+      let order = null;
+      if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+        order = await Order.findById(id);
+      }
+      if (!order && id) {
+        order = await Order.findOne({ orderNumber: id });
+      }
       if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
 
       // Rules:
