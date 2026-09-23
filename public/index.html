@@ -143,7 +143,7 @@
           <div class="banner-flash-deal-bar">
             <div class="banner-deal-left">
               <span class="badge badge-sale">⚡ FLASH DEAL</span>
-              <span class="banner-deal-tagline">Up to <strong>40% OFF</strong> Onikuma Gaming Gear & Headsets!</span>
+              <span class="banner-deal-tagline" id="heroBannerTagline">Up to <strong>40% OFF</strong> Onikuma Gaming Gear & Headsets!</span>
             </div>
             <div class="banner-deal-timer-wrap">
               <span class="banner-timer-label">ENDS TODAY:</span>
@@ -167,82 +167,13 @@
             </div>
           </div>
 
-          <!-- Slide 1: Mega Flash Sale -->
-          <div class="hero-slide active" style="background: linear-gradient(135deg, #1C0F18 0%, #100A16 45%, #080C14 100%);">
-            <div class="hero-slide-content">
-              <span class="hero-badge hero-badge-crimson">⚡ LIMITED TIME FLASH DEAL • ENDS TODAY</span>
-              <h1 class="hero-title">UP TO <span class="highlight-pink">40% OFF</span> GAMING GEAR</h1>
-              <p class="hero-desc">Limited imported stock on Onikuma RGB headsets, mechanical keyboards & accessories. 100% genuine with 1-Year official replacement warranty in Kathmandu.</p>
-              <div class="hero-price-tag">
-                <span class="badge badge-sale" style="font-size: 0.85rem; padding: 6px 12px;">🔥 LIMITED STOCK DEALS</span>
-                <span style="color: var(--color-cyan); font-weight: 800; font-size: 0.95rem;">From Rs. 1,499</span>
-                <span class="badge badge-stock" style="font-size: 0.75rem;">FREE KTM Delivery on Rs. 3,000+</span>
-              </div>
-              <div class="hero-actions">
-                <a href="#productsSection" class="btn btn-sakura">
-                  <span>🔥</span> Shop Flash Deals
-                </a>
-                <a href="https://wa.me/9779864006883" target="_blank" class="btn btn-whatsapp">
-                  <span>💬</span> Order on WhatsApp
-                </a>
-              </div>
-            </div>
-            <div class="hero-image-wrap">
-              <img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80" alt="Onikuma Flash Deals">
-            </div>
-          </div>
-          
-          <!-- Slide 2: K9 Cat Ear Sakura -->
-          <div class="hero-slide" style="background: linear-gradient(135deg, #1C121A 0%, #0C080B 100%);">
-            <div class="hero-slide-content">
-              <span class="hero-badge hero-badge-pink">🐱 Signature Cat-Ear Edition</span>
-              <h2 class="hero-title">ONIKUMA <span class="highlight-pink">K9 PINK</span> RGB</h2>
-              <p class="hero-desc">Detachable cat ears, 50mm dynamic surround sound drivers, noise-canceling mic, and ultra-soft memory foam earmuffs.</p>
-              <div class="hero-price-tag">
-                <span class="hero-sale-price">Rs. 3,199</span>
-                <span class="hero-regular-price">Rs. 4,800</span>
-                <span class="badge badge-sale">-33% OFF</span>
-              </div>
-              <div class="hero-actions">
-                <button class="btn btn-sakura trigger-cart-drawer" onclick="document.querySelector('.btn-add-to-cart[data-id]')?.click()">
-                  <span>🛒</span> Buy Now
-                </button>
-                <a href="#productsSection" class="btn btn-secondary nav-filter-link" data-category="cat-ear-series">Explore Cat-Ear Series</a>
-              </div>
-            </div>
-            <div class="hero-image-wrap">
-              <img src="https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&q=80" alt="Onikuma K9 Pink">
-            </div>
-          </div>
-
-          <!-- Slide 3: K10 Pro Black RGB -->
-          <div class="hero-slide" style="background: linear-gradient(135deg, #111722 0%, #070B10 100%);">
-            <div class="hero-slide-content">
-              <span class="hero-badge hero-badge-cyan">🎧 7.1 Virtual Surround Sound</span>
-              <h2 class="hero-title">ONIKUMA <span class="highlight-cyan">K10 PRO</span> GAMING</h2>
-              <p class="hero-desc">Engineered for esports dominance with acoustic positioning, immersive bass, and custom breathable leather cushions.</p>
-              <div class="hero-price-tag">
-                <span class="hero-sale-price">Rs. 2,999</span>
-                <span class="hero-regular-price">Rs. 4,200</span>
-                <span class="badge badge-sale">-28% OFF</span>
-              </div>
-              <div class="hero-actions">
-                <a href="#productsSection" class="btn btn-cyan">View Catalog</a>
-                <a href="https://wa.me/9779864006883" target="_blank" class="btn btn-whatsapp">Order on WhatsApp</a>
-              </div>
-            </div>
-            <div class="hero-image-wrap">
-              <img src="https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&q=80" alt="Onikuma K10">
-            </div>
+          <!-- Dynamic Hero Slides Container -->
+          <div id="dynamicHeroSlides" style="display: contents;">
+            <!-- Dynamic Hero Slides Rendered by app.js from Database Products -->
           </div>
 
           <!-- Slider Dots -->
-          <div class="hero-slider-dots">
-            <div class="slider-dot active" data-slide="0"></div>
-            <div class="slider-dot" data-slide="1"></div>
-            <div class="slider-dot" data-slide="2"></div>
-          </div>
-
+          <div class="hero-slider-dots" id="heroSliderDots"></div>
         </div>
 
       </div>

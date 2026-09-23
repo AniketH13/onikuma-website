@@ -7,6 +7,7 @@ import { initCheckout } from './checkout.js';
 
 let allCategories = [];
 let currentCategoryFilter = 'all';
+let heroSliderTimer = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
   initCart();
@@ -16,9 +17,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadStoreSettings();
   await loadCategories();
-  await loadProducts();
+  const initialProducts = await loadProducts();
+  if (initialProducts) {
+    renderHeroSlider(initialProducts);
+  }
 
-  initHeroSlider();
   initCountdownTimer();
   setupNavigationEvents();
 
@@ -178,6 +181,7 @@ async function loadProducts(params = {}) {
   const products = await fetchProducts(params);
   syncCartStock(products);
   renderProductGrid(products);
+  return products;
 }
 
 function renderProductGrid(products) {
@@ -307,27 +311,132 @@ async function filterByCategory(slug) {
   });
 }
 
-// ---------------- HERO SLIDER ---------------- //
+// ---------------- DYNAMIC HERO SLIDER ---------------- //
+function renderHeroSlider(products) {
+  const container = document.getElementById('dynamicHeroSlides');
+  const dotsContainer = document.getElementById('heroSliderDots');
+  const taglineEl = document.getElementById('heroBannerTagline');
+  if (!container) return;
+
+  if (!products || products.length === 0) {
+    container.innerHTML = `
+      <div class="hero-slide active" style="background: linear-gradient(135deg, #1C0F18 0%, #100A16 45%, #080C14 100%);">
+        <div class="hero-slide-content">
+          <span class="hero-badge hero-badge-crimson">⚡ OFFICIAL STORE</span>
+          <h1 class="hero-title">WELCOME TO <span class="highlight-pink">ONIKUMA</span> NEPAL</h1>
+          <p class="hero-desc">Authentic esports gaming headsets, mechanical keyboards, gaming mice & accessories with 1-Year official replacement warranty in Kathmandu.</p>
+          <div class="hero-actions">
+            <a href="/products" class="btn btn-sakura"><span>🔥</span> Explore Catalog</a>
+            <a href="https://wa.me/9779864006883" target="_blank" class="btn btn-whatsapp"><span>💬</span> Chat on WhatsApp</a>
+          </div>
+        </div>
+        <div class="hero-image-wrap">
+          <img src="/logo.png" alt="Onikuma Nepal" style="max-height: 220px; object-fit: contain;">
+        </div>
+      </div>
+    `;
+    if (dotsContainer) dotsContainer.innerHTML = '';
+    return;
+  }
+
+  // Use top 3 products from database for the hero slider
+  const featured = products.slice(0, 3);
+
+  // Dynamically calculate highest discount among products
+  let maxDiscount = 0;
+  products.forEach(p => {
+    if (p.regularPrice && p.salePrice && p.regularPrice > p.salePrice) {
+      const disc = Math.round(((p.regularPrice - p.salePrice) / p.regularPrice) * 100);
+      if (disc > maxDiscount) maxDiscount = disc;
+    }
+  });
+
+  if (taglineEl) {
+    if (maxDiscount > 0) {
+      taglineEl.innerHTML = `Up to <strong>${maxDiscount}% OFF</strong> Onikuma Gaming Gear & Headsets!`;
+    } else {
+      taglineEl.innerHTML = `Official <strong>ONIKUMA Nepal</strong> Gaming Store`;
+    }
+  }
+
+  const themes = [
+    { bg: 'linear-gradient(135deg, #1C0F18 0%, #100A16 45%, #080C14 100%)', badgeClass: 'hero-badge-crimson', btnClass: 'btn-sakura', highlight: 'highlight-pink' },
+    { bg: 'linear-gradient(135deg, #1C121A 0%, #0C080B 100%)', badgeClass: 'hero-badge-pink', btnClass: 'btn-sakura', highlight: 'highlight-pink' },
+    { bg: 'linear-gradient(135deg, #111722 0%, #070B10 100%)', badgeClass: 'hero-badge-cyan', btnClass: 'btn-cyan', highlight: 'highlight-cyan' }
+  ];
+
+  container.innerHTML = featured.map((p, index) => {
+    const theme = themes[index % themes.length];
+    const salePrice = p.salePrice || p.regularPrice;
+    const regularPrice = p.regularPrice;
+    const discount = (regularPrice && salePrice && regularPrice > salePrice)
+      ? Math.round(((regularPrice - salePrice) / regularPrice) * 100)
+      : 0;
+    const mainImg = (p.images && p.images[0]) ? p.images[0] : '/logo.png';
+    const badgeText = p.badge || (discount > 0 ? `⚡ ${discount}% OFF LIMITED DEAL` : '🎮 OFFICIAL ONIKUMA');
+    const desc = p.description 
+      ? (p.description.length > 140 ? p.description.slice(0, 140) + '...' : p.description) 
+      : '100% genuine Onikuma gaming gear with 1-Year official replacement warranty in Kathmandu.';
+
+    return `
+      <div class="hero-slide ${index === 0 ? 'active' : ''}" style="background: ${theme.bg};">
+        <div class="hero-slide-content">
+          <span class="hero-badge ${theme.badgeClass}">${badgeText}</span>
+          <h2 class="hero-title">${p.title}</h2>
+          <p class="hero-desc">${desc}</p>
+          <div class="hero-price-tag">
+            <span class="hero-sale-price">Rs. ${salePrice.toLocaleString()}</span>
+            ${discount > 0 ? `<span class="hero-regular-price">Rs. ${regularPrice.toLocaleString()}</span>` : ''}
+            ${discount > 0 ? `<span class="badge badge-sale">-${discount}% OFF</span>` : ''}
+          </div>
+          <div class="hero-actions">
+            <a href="/product?id=${p.slug || p._id}" class="btn ${theme.btnClass}">
+              <span>👁️</span> View Details
+            </a>
+            <a href="https://wa.me/9779864006883?text=Hi%2C%20I%20am%20interested%20in%20${encodeURIComponent(p.title)}" target="_blank" class="btn btn-whatsapp">
+              <span>💬</span> Order on WhatsApp
+            </a>
+          </div>
+        </div>
+        <div class="hero-image-wrap">
+          <a href="/product?id=${p.slug || p._id}" style="display: block;">
+            <img src="${mainImg}" alt="${p.title}" style="max-height: 280px; width: auto; object-fit: contain;">
+          </a>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  if (dotsContainer) {
+    if (featured.length > 1) {
+      dotsContainer.innerHTML = featured.map((_, i) => `
+        <div class="slider-dot ${i === 0 ? 'active' : ''}" data-slide="${i}"></div>
+      `).join('');
+    } else {
+      dotsContainer.innerHTML = '';
+    }
+  }
+
+  initHeroSlider();
+}
+
 function initHeroSlider() {
+  if (heroSliderTimer) clearInterval(heroSliderTimer);
   const slides = document.querySelectorAll('.hero-slide');
   const dots = document.querySelectorAll('.slider-dot');
   if (slides.length <= 1) return;
 
   let currentSlide = 0;
-  let timer = null;
 
   function showSlide(index) {
-    slides.forEach((s, i) => {
-      s.classList.toggle('active', i === index);
-    });
-    dots.forEach((d, i) => {
-      d.classList.toggle('active', i === index);
-    });
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    dots.forEach((d, i) => d.classList.toggle('active', i === index));
     currentSlide = index;
   }
 
   function startAutoplay() {
-    timer = setInterval(() => {
+    if (heroSliderTimer) clearInterval(heroSliderTimer);
+    heroSliderTimer = setInterval(() => {
       const next = (currentSlide + 1) % slides.length;
       showSlide(next);
     }, 6000);
@@ -335,7 +444,6 @@ function initHeroSlider() {
 
   dots.forEach(dot => {
     dot.addEventListener('click', () => {
-      clearInterval(timer);
       const idx = parseInt(dot.getAttribute('data-slide'), 10);
       showSlide(idx);
       startAutoplay();
