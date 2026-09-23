@@ -980,12 +980,22 @@ export async function refreshSettings() {
   const bannerInput = document.getElementById('settingAnnouncement');
   const insideFeeInput = document.getElementById('settingInsideValleyFee');
   const outsideFeeInput = document.getElementById('settingOutsideValleyFee');
+  const flashDealEndInput = document.getElementById('settingFlashDealEnd');
 
   if (hotlineInput) hotlineInput.value = settings.hotline || '9864006883';
   if (whatsappInput) whatsappInput.value = settings.whatsapp || '9864006883';
   if (bannerInput) bannerInput.value = settings.announcement || '';
   if (insideFeeInput) insideFeeInput.value = settings.insideValleyDeliveryFee || 100;
   if (outsideFeeInput) outsideFeeInput.value = settings.outsideValleyDeliveryFee || 200;
+
+  if (flashDealEndInput && settings.flashDealEndDate) {
+    // Convert stored ISO string to local datetime-local format (YYYY-MM-DDTHH:MM)
+    const dt = new Date(settings.flashDealEndDate);
+    if (!isNaN(dt)) {
+      const pad = n => String(n).padStart(2, '0');
+      flashDealEndInput.value = `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+    }
+  }
 }
 
 function setupForms() {
@@ -1301,12 +1311,14 @@ function setupForms() {
   if (settingsForm) {
     settingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
+      const flashDealEndRaw = document.getElementById('settingFlashDealEnd').value;
       const updates = {
         hotline: document.getElementById('settingHotline').value.trim(),
         whatsapp: document.getElementById('settingWhatsapp').value.trim(),
         announcement: document.getElementById('settingAnnouncement').value.trim(),
         insideValleyDeliveryFee: Number(document.getElementById('settingInsideValleyFee').value),
-        outsideValleyDeliveryFee: Number(document.getElementById('settingOutsideValleyFee').value)
+        outsideValleyDeliveryFee: Number(document.getElementById('settingOutsideValleyFee').value),
+        flashDealEndDate: flashDealEndRaw ? new Date(flashDealEndRaw).toISOString() : null
       };
 
       const res = await updateSettings(updates);

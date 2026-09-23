@@ -37,6 +37,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+let flashDealEndDate = null;
+
 async function loadStoreSettings() {
   const settings = await fetchSettings();
   const hotlineEls = document.querySelectorAll('.hotline-text');
@@ -51,6 +53,18 @@ async function loadStoreSettings() {
   }
   if (settings.announcement && announcementEl) {
     announcementEl.textContent = settings.announcement;
+  }
+
+  // Store the flash deal end date globally for the countdown timer
+  if (settings.flashDealEndDate) {
+    const parsed = new Date(settings.flashDealEndDate);
+    if (!isNaN(parsed) && parsed > new Date()) {
+      flashDealEndDate = parsed;
+    } else {
+      flashDealEndDate = null; // expired — hide timer
+    }
+  } else {
+    flashDealEndDate = null;
   }
 }
 
@@ -502,22 +516,47 @@ function initCountdownTimer() {
   const hoursEl = document.getElementById('timerHours');
   const minsEl = document.getElementById('timerMins');
   const secsEl = document.getElementById('timerSecs');
+  const timerWrap = document.querySelector('.banner-deal-timer-wrap');
 
   if (!hoursEl || !minsEl || !secsEl) return;
 
-  // 14 hours countdown from page load
-  let totalSeconds = 14 * 3600 + 42 * 60 + 19;
+  // If no real flash deal end date is set from DB, hide the timer
+  if (!flashDealEndDate) {
+    if (timerWrap) timerWrap.style.display = 'none';
+    return;
+  }
 
-  setInterval(() => {
-    if (totalSeconds > 0) totalSeconds--;
-    const h = Math.floor(totalSeconds / 3600);
-    const m = Math.floor((totalSeconds % 3600) / 60);
-    const s = totalSeconds % 60;
+  // Show timer (in case it was hidden)
+  if (timerWrap) timerWrap.style.display = '';
+
+  function tick() {
+    const now = new Date();
+    const diff = flashDealEndDate - now;
+
+    if (diff <= 0) {
+      // Deal has ended
+      hoursEl.textContent = '00';
+      minsEl.textContent = '00';
+      secsEl.textContent = '00';
+      // Optionally hide the whole bar when expired
+      const flashBar = document.querySelector('.banner-flash-deal-bar');
+      if (flashBar) flashBar.style.opacity = '0.4';
+      clearInterval(countdownInterval);
+      return;
+    }
+
+    const totalSecs = Math.floor(diff / 1000);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
 
     hoursEl.textContent = String(h).padStart(2, '0');
     minsEl.textContent = String(m).padStart(2, '0');
     secsEl.textContent = String(s).padStart(2, '0');
-  }, 1000);
+  }
+
+  tick(); // run immediately to avoid 1s blank delay
+  const countdownInterval = setInterval(tick, 1000);
 }
 
 // ---------------- NAVIGATION & DROPDOWN EVENTS ---------------- //
