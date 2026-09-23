@@ -32,6 +32,9 @@
       </div>
       <div class="announcement-right">
         <span class="delivery-badge">🚚 Free Delivery in KTM Valley on Rs. 3,000+</span>
+        <button type="button" class="btn-open-track" id="btnOpenTrackOrder" style="background:none;border:none;color:#fff;cursor:pointer;font-size:0.8rem;font-weight:600;margin-left:14px;display:inline-flex;align-items:center;gap:4px;">
+          <span>📍 Track Order</span>
+        </button>
       </div>
     </div>
   </aside>
@@ -524,6 +527,38 @@
               <span>🛒</span> Add to Cart
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Track Order Modal -->
+  <div class="track-modal-overlay" id="trackOrderModal" role="dialog" aria-modal="true" aria-labelledby="trackModalTitle">
+    <div class="track-modal-card">
+      <div class="track-modal-header">
+        <div class="track-modal-title-group">
+          <span class="track-modal-icon">📍</span>
+          <div>
+            <h3 id="trackModalTitle" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #fff;">Track Your Order</h3>
+            <p style="margin: 2px 0 0; font-size: 0.76rem; color: var(--text-secondary);">Real-time dispatch &amp; delivery tracking across Nepal</p>
+          </div>
+        </div>
+        <button type="button" class="btn-track-close" id="btnCloseTrackModal" aria-label="Close">✕</button>
+      </div>
+
+      <form class="track-search-form" id="trackOrderForm">
+        <div class="track-input-wrapper">
+          <input type="text" id="trackOrderInput" class="track-input" placeholder="Enter Order # (e.g. ONK-123456) or Phone #" required autocomplete="off">
+          <button type="submit" class="btn btn-primary track-submit-btn" id="btnSubmitTrack">
+            <span>Track 🚀</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="track-results-area" id="trackResultsArea">
+        <div class="track-not-found" style="border:none;background:transparent;padding:20px 10px;">
+          <div style="font-size:2rem;margin-bottom:8px;">📦</div>
+          <h4 style="font-size:0.95rem;color:var(--text-secondary);margin:0;">Enter your Order ID (from checkout) or registered mobile number to check delivery progress.</h4>
         </div>
       </div>
     </div>

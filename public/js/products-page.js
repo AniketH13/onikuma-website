@@ -4,6 +4,7 @@ import { initCart, addToCart, openCartDrawer, syncCartStock } from './cart.js';
 import { initSearch } from './search.js';
 import { initQuickView, openQuickView } from './quickview.js';
 import { initCheckout } from './checkout.js';
+import { initTrackOrder } from './track-order.js';
 
 let allProducts = [];
 let allCategories = [];
@@ -19,6 +20,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initSearch();
   initQuickView();
   initCheckout();
+  initTrackOrder();
 
   await loadStoreSettings();
 

@@ -264,3 +264,14 @@ export async function fetchAnalytics(params = {}) {
     return null;
   }
 }
+
+export async function trackOrder(query) {
+  try {
+    const res = await fetch(`${API_BASE}/orders/track?q=${encodeURIComponent(query)}`);
+    return await res.json();
+  } catch (err) {
+    console.error('Error tracking order:', err);
+    return { success: false, message: 'Could not connect to tracking service. Please try again.' };
+  }
+}
+

@@ -117,6 +117,98 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/orders/track?q=... (Live customer order tracking)
+router.get('/track', async (req, res) => {
+  try {
+    const rawQuery = (req.query.q || req.query.query || req.query.orderNumber || '').trim();
+    if (!rawQuery) {
+      return res.status(400).json({ success: false, message: 'Please enter an Order ID (e.g. ONK-123456) or Phone Number.' });
+    }
+
+    const cleanDigits = rawQuery.replace(/[^0-9]/g, '');
+    const cleanLower = rawQuery.toLowerCase();
+
+    let order = null;
+
+    if (getMongoStatus()) {
+      // 1. Exact or case-insensitive orderNumber
+      order = await Order.findOne({
+        orderNumber: { $regex: new RegExp('^' + escapeRegex(rawQuery) + '$', 'i') }
+      }).lean();
+
+      // 2. Partial orderNumber (e.g. if customer typed "123456")
+      if (!order && cleanDigits.length >= 5) {
+        order = await Order.findOne({
+          orderNumber: { $regex: new RegExp(escapeRegex(cleanDigits)) }
+        }).sort({ createdAt: -1 }).lean();
+      }
+
+      // 3. Search by customer phone number
+      if (!order && cleanDigits.length >= 7) {
+        order = await Order.findOne({
+          'customer.phone': { $regex: new RegExp(escapeRegex(cleanDigits)) }
+        }).sort({ createdAt: -1 }).lean();
+      }
+    } else {
+      // Fallback in-memory store
+      order = fallbackStore.orders.find(o =>
+        o.orderNumber.toLowerCase() === cleanLower ||
+        (o._id && String(o._id).toLowerCase() === cleanLower)
+      );
+
+      if (!order && cleanDigits.length >= 5) {
+        order = fallbackStore.orders.find(o => o.orderNumber.includes(cleanDigits));
+      }
+
+      if (!order && cleanDigits.length >= 7) {
+        order = fallbackStore.orders.find(o =>
+          o.customer && o.customer.phone && o.customer.phone.replace(/[^0-9]/g, '').includes(cleanDigits)
+        );
+      }
+    }
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: `No order found for "${rawQuery}". Please check your Order ID or phone number.`
+      });
+    }
+
+    // Mask phone for privacy: e.g. 986****883
+    const phone = (order.customer && order.customer.phone) || '';
+    const maskedPhone = phone.length > 5
+      ? phone.slice(0, 3) + '****' + phone.slice(-3)
+      : phone;
+
+    res.json({
+      success: true,
+      data: {
+        orderNumber: order.orderNumber,
+        status: order.status || 'Pending',
+        createdAt: order.createdAt,
+        customerName: order.customer ? order.customer.fullName : 'Valued Customer',
+        phone: maskedPhone,
+        city: (order.customer && order.customer.city) || 'Kathmandu Valley',
+        district: (order.customer && order.customer.district) || 'Kathmandu',
+        address: (order.customer && order.customer.address) || '',
+        items: (order.items || []).map(i => ({
+          title: i.title,
+          quantity: i.quantity || 1,
+          price: i.price,
+          image: i.image
+        })),
+        subtotal: order.subtotal,
+        deliveryFee: order.deliveryFee,
+        discount: order.discount,
+        total: order.total,
+        paymentMethod: order.paymentMethod || 'cod'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // POST create customer order from Checkout
 router.post('/', async (req, res) => {
   try {
