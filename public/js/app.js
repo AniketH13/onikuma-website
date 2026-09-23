@@ -311,7 +311,7 @@ async function filterByCategory(slug) {
   });
 }
 
-// ---------------- DYNAMIC HERO SLIDER ---------------- //
+// ---------------- DYNAMIC HERO SLIDER (ONE PRODUCT PER CATEGORY) ---------------- //
 function renderHeroSlider(products) {
   const container = document.getElementById('dynamicHeroSlides');
   const dotsContainer = document.getElementById('heroSliderDots');
@@ -339,8 +339,44 @@ function renderHeroSlider(products) {
     return;
   }
 
-  // Use top 3 products from database for the hero slider
-  const featured = products.slice(0, 3);
+  // Select one representative product from each category
+  const categorySlides = [];
+  const seenCategories = new Set();
+
+  if (allCategories && allCategories.length > 0) {
+    allCategories.forEach(cat => {
+      const matching = products.filter(p => p.categorySlug === cat.slug || p.category === cat.name);
+      if (matching.length > 0) {
+        // Find best candidate: prefer product with image and discount
+        const best = matching.find(p => p.images && p.images.length > 0 && p.salePrice && p.regularPrice > p.salePrice)
+                  || matching.find(p => p.images && p.images.length > 0)
+                  || matching[0];
+        categorySlides.push({
+          product: best,
+          categoryName: cat.name,
+          categoryIcon: cat.icon || '🎮',
+          categorySlug: cat.slug
+        });
+        seenCategories.add(cat.slug);
+      }
+    });
+  }
+
+  // Fallback if some products are uncategorized
+  if (categorySlides.length === 0) {
+    products.forEach(p => {
+      const key = p.categorySlug || p.category || 'general';
+      if (!seenCategories.has(key)) {
+        seenCategories.add(key);
+        categorySlides.push({
+          product: p,
+          categoryName: p.category || 'Featured Gear',
+          categoryIcon: '🔥',
+          categorySlug: p.categorySlug || 'all'
+        });
+      }
+    });
+  }
 
   // Dynamically calculate highest discount among products
   let maxDiscount = 0;
@@ -359,13 +395,18 @@ function renderHeroSlider(products) {
     }
   }
 
+  // Color themes for cycling through categories
   const themes = [
     { bg: 'linear-gradient(135deg, #1C0F18 0%, #100A16 45%, #080C14 100%)', badgeClass: 'hero-badge-crimson', btnClass: 'btn-sakura', highlight: 'highlight-pink' },
     { bg: 'linear-gradient(135deg, #1C121A 0%, #0C080B 100%)', badgeClass: 'hero-badge-pink', btnClass: 'btn-sakura', highlight: 'highlight-pink' },
-    { bg: 'linear-gradient(135deg, #111722 0%, #070B10 100%)', badgeClass: 'hero-badge-cyan', btnClass: 'btn-cyan', highlight: 'highlight-cyan' }
+    { bg: 'linear-gradient(135deg, #111722 0%, #070B10 100%)', badgeClass: 'hero-badge-cyan', btnClass: 'btn-cyan', highlight: 'highlight-cyan' },
+    { bg: 'linear-gradient(135deg, #1C170A 0%, #0E0B05 100%)', badgeClass: 'hero-badge-crimson', btnClass: 'btn-sakura', highlight: 'highlight-pink' },
+    { bg: 'linear-gradient(135deg, #160F1F 0%, #0B0711 100%)', badgeClass: 'hero-badge-pink', btnClass: 'btn-cyan', highlight: 'highlight-cyan' },
+    { bg: 'linear-gradient(135deg, #0F1A1C 0%, #060E0F 100%)', badgeClass: 'hero-badge-cyan', btnClass: 'btn-sakura', highlight: 'highlight-pink' }
   ];
 
-  container.innerHTML = featured.map((p, index) => {
+  container.innerHTML = categorySlides.map((item, index) => {
+    const p = item.product;
     const theme = themes[index % themes.length];
     const salePrice = p.salePrice || p.regularPrice;
     const regularPrice = p.regularPrice;
@@ -373,7 +414,7 @@ function renderHeroSlider(products) {
       ? Math.round(((regularPrice - salePrice) / regularPrice) * 100)
       : 0;
     const mainImg = (p.images && p.images[0]) ? p.images[0] : '/logo.png';
-    const badgeText = p.badge || (discount > 0 ? `⚡ ${discount}% OFF LIMITED DEAL` : '🎮 OFFICIAL ONIKUMA');
+    const badgeText = `${item.categoryIcon} ${item.categoryName}`;
     const desc = p.description 
       ? (p.description.length > 140 ? p.description.slice(0, 140) + '...' : p.description) 
       : '100% genuine Onikuma gaming gear with 1-Year official replacement warranty in Kathmandu.';
@@ -393,14 +434,17 @@ function renderHeroSlider(products) {
             <a href="/product?id=${p.slug || p._id}" class="btn ${theme.btnClass}">
               <span>👁️</span> View Details
             </a>
+            <a href="/products?category=${item.categorySlug}" class="btn btn-secondary" style="border-color: var(--border-subtle);">
+              <span>${item.categoryIcon}</span> Browse Category
+            </a>
             <a href="https://wa.me/9779864006883?text=Hi%2C%20I%20am%20interested%20in%20${encodeURIComponent(p.title)}" target="_blank" class="btn btn-whatsapp">
-              <span>💬</span> Order on WhatsApp
+              <span>💬</span> WhatsApp
             </a>
           </div>
         </div>
         <div class="hero-image-wrap">
           <a href="/product?id=${p.slug || p._id}" style="display: block;">
-            <img src="${mainImg}" alt="${p.title}" style="max-height: 280px; width: auto; object-fit: contain;">
+            <img src="${mainImg}" alt="${p.title}" style="max-height: 320px; width: auto; object-fit: contain;">
           </a>
         </div>
       </div>
@@ -408,9 +452,9 @@ function renderHeroSlider(products) {
   }).join('');
 
   if (dotsContainer) {
-    if (featured.length > 1) {
-      dotsContainer.innerHTML = featured.map((_, i) => `
-        <div class="slider-dot ${i === 0 ? 'active' : ''}" data-slide="${i}"></div>
+    if (categorySlides.length > 1) {
+      dotsContainer.innerHTML = categorySlides.map((item, i) => `
+        <div class="slider-dot ${i === 0 ? 'active' : ''}" data-slide="${i}" title="${item.categoryName}"></div>
       `).join('');
     } else {
       dotsContainer.innerHTML = '';
