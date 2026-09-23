@@ -104,12 +104,23 @@ async function initCheckoutPage() {
 
 function setupPaymentMethods() {
   const paymentCards = document.querySelectorAll('.payment-method-card');
+  const submitBtn = document.getElementById('btnSubmitOrder');
+
   paymentCards.forEach(card => {
     card.addEventListener('click', () => {
       paymentCards.forEach(c => c.classList.remove('active'));
       card.classList.add('active');
       const radio = card.querySelector('input[type="radio"]');
-      if (radio) radio.checked = true;
+      if (radio) {
+        radio.checked = true;
+        if (submitBtn) {
+          if (radio.value === 'esewa') {
+            submitBtn.innerHTML = `<span>Place Order & Pay with eSewa</span><span>📲</span>`;
+          } else {
+            submitBtn.innerHTML = `<span>Place Order (Confirm)</span><span>→</span>`;
+          }
+        }
+      }
     });
   });
 }
@@ -333,20 +344,57 @@ async function handleStandardCheckoutSubmit(e) {
       const orderData = response.data;
       clearCart();
       renderSuccessState(orderData);
-      showToast('Order confirmed successfully! 🎉', 'success', 5000);
+
+      if (paymentMethod === 'esewa') {
+        showToast(`Order #${orderData.orderNumber} registered! Opening WhatsApp for eSewa verification...`, 'success', 6000);
+        openEsewaWhatsAppRedirect(orderData);
+      } else {
+        showToast('Order confirmed successfully! 🎉', 'success', 5000);
+      }
     } else {
       showToast('Could not place order: ' + ((response && response.message) || 'Please check your connection.'), 'error');
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span>Place Order (Confirm)</span><span>→</span>`;
+        submitBtn.innerHTML = paymentMethod === 'esewa'
+          ? `<span>Place Order & Pay with eSewa</span><span>📲</span>`
+          : `<span>Place Order (Confirm)</span><span>→</span>`;
       }
     }
   } catch (err) {
     showToast('An unexpected error occurred: ' + err.message, 'error');
     if (submitBtn) {
       submitBtn.disabled = false;
-      submitBtn.innerHTML = `<span>Place Order (Confirm)</span><span>→</span>`;
+      submitBtn.innerHTML = paymentMethod === 'esewa'
+        ? `<span>Place Order & Pay with eSewa</span><span>📲</span>`
+        : `<span>Place Order (Confirm)</span><span>→</span>`;
     }
+  }
+}
+
+function openEsewaWhatsAppRedirect(order) {
+  let msg = `🟢 *ESEWA PAYMENT FOR ORDER #${order.orderNumber}* 🟢\n\n`;
+  msg += `Hello Onikuma Nepal! I just placed order *#${order.orderNumber}* on your website using *eSewa*.\n\n`;
+  msg += `*Order Summary:*\n`;
+  msg += `📦 Order #: ${order.orderNumber}\n`;
+  msg += `👤 Customer: ${order.customer.fullName} (${order.customer.phone})\n`;
+  msg += `📍 Delivery: ${order.customer.address}, ${order.customer.city}\n`;
+  msg += `💰 Total Amount: Rs. ${order.total.toLocaleString()}\n`;
+  msg += `💳 Method: eSewa Mobile Wallet\n\n`;
+  msg += `*Items Ordered:*\n`;
+  order.items.forEach((item, idx) => {
+    msg += `${idx + 1}. ${item.title} (x${item.quantity}) - Rs. ${(item.price * item.quantity).toLocaleString()}\n`;
+  });
+  msg += `\nPlease provide your official Onikuma Nepal eSewa ID / QR Code so I can complete payment and send the transfer screenshot!`;
+
+  const encoded = encodeURIComponent(msg);
+  const waUrl = `https://wa.me/977${WHATSAPP_NUMBER}?text=${encoded}`;
+
+  // Attempt opening in a new tab/app, fallback to current window if blocked
+  const newWin = window.open(waUrl, '_blank');
+  if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+    setTimeout(() => {
+      window.location.href = waUrl;
+    }, 1200);
   }
 }
 
@@ -406,8 +454,23 @@ function renderSuccessState(order) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (detailsBox) {
-    const paymentLabel = order.paymentMethod === 'esewa' ? 'eSewa Digital Wallet' : 'Cash on Delivery (COD)';
+    const isEsewa = order.paymentMethod === 'esewa';
+    const paymentLabel = isEsewa ? 'eSewa Mobile Wallet (WhatsApp Verification)' : 'Cash on Delivery (COD)';
     const deliveryEstimated = order.deliveryFee === 0 ? 'FREE' : `Rs. ${order.deliveryFee.toLocaleString()}`;
+
+    let esewaNoticeHtml = '';
+    if (isEsewa) {
+      esewaNoticeHtml = `
+        <div style="background: rgba(96, 187, 70, 0.12); border: 1.5px solid #60BB46; border-radius: var(--radius-sm); padding: 16px; margin-top: 14px; text-align: left;">
+          <div style="font-weight: 800; color: #60BB46; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
+            <span>🟢</span> Order Registered! Complete eSewa Payment
+          </div>
+          <div style="font-size: 0.86rem; color: #FFFFFF; line-height: 1.5;">
+            Your order <strong>#${order.orderNumber}</strong> is registered in our database. We have connected you to WhatsApp (+977 ${WHATSAPP_NUMBER}) to receive the eSewa QR and submit your payment screenshot.
+          </div>
+        </div>
+      `;
+    }
 
     detailsBox.innerHTML = `
       <div class="success-detail-row">
@@ -434,12 +497,20 @@ function renderSuccessState(order) {
         <span style="font-weight: 800; color: #fff;">Total Payable:</span>
         <strong style="color: var(--color-primary); font-size: 1.3rem;">Rs. ${order.total.toLocaleString()}</strong>
       </div>
+      ${esewaNoticeHtml}
     `;
   }
 
   if (waBtn) {
-    const msg = encodeURIComponent(`Hi Onikuma Nepal, I just placed order ${order.orderNumber} for Rs. ${order.total.toLocaleString()}. Please confirm delivery!`);
-    waBtn.href = `https://wa.me/977${WHATSAPP_NUMBER}?text=${msg}`;
+    const isEsewa = order.paymentMethod === 'esewa';
+    const waText = isEsewa
+      ? `Hi Onikuma Nepal! I just registered order #${order.orderNumber} for Rs. ${order.total.toLocaleString()} via eSewa. Please send your eSewa QR code so I can complete payment and send the transfer screenshot!`
+      : `Hi Onikuma Nepal, I just placed order ${order.orderNumber} for Rs. ${order.total.toLocaleString()}. Please confirm delivery!`;
+
+    waBtn.href = `https://wa.me/977${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
+    if (isEsewa) {
+      waBtn.innerHTML = `<span>💬 Send eSewa Screenshot on WhatsApp (+977 9864006883)</span>`;
+    }
   }
 
   if (trackBtn) {
