@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Checkout | ONIKUMA Nepal Official Store</title>
+  <meta name="description" content="Complete your Onikuma Nepal order with fast doorstep delivery across Nepal. Cash on Delivery (COD) and eSewa supported with official 1-Year Warranty.">
+  <link rel="icon" type="image/png" href="/images/logo.png">
+
+  <!-- Google Fonts: Inter & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+
+  <!-- Core & Component Stylesheets -->
+  <link rel="stylesheet" href="/css/variables.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/header.css">
+  <link rel="stylesheet" href="/css/cart.css">
+  <link rel="stylesheet" href="/css/checkout.css">
+  <link rel="stylesheet" href="/css/modals.css">
+</head>
+<body>
+
+  <!-- Top Announcement Bar -->
+  <aside class="announcement-bar">
+    <div class="container announcement-inner">
+      <div class="announcement-message">
+        🔥 <strong>ONIKUMA NEPAL OFFICIAL STORE</strong> — Authorized Importer & Distributor | 1-Year Replacement Warranty
+      </div>
+      <div class="announcement-right">
+        <span class="delivery-badge">🚚 Free Delivery in KTM Valley on Rs. 3,000+</span>
+        <button type="button" class="btn-open-track" id="btnOpenTrackOrder" style="background:none;border:none;color:#fff;cursor:pointer;font-size:0.8rem;font-weight:600;margin-left:14px;display:inline-flex;align-items:center;gap:4px;">
+          <span>📍 Track Order</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="container">
+      <div class="main-header-inner">
+        <!-- Brand Logo -->
+        <a href="/" class="brand-logo" id="siteBrandLogo">
+          <img src="/images/logo.png" alt="ONIKUMA Nepal Official Logo" class="brand-logo-img">
+          <div class="brand-text">
+            <span class="brand-title">ONIKUMA <span>NEPAL</span></span>
+            <span class="brand-subtitle">OFFICIAL GAMING GEAR</span>
+          </div>
+        </a>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <!-- Hotline Phone -->
+          <div class="header-support">
+            <div class="support-icon">📞</div>
+            <div class="support-text">
+              <span class="support-label">Support Hotline</span>
+              <a href="tel:9864006883" class="support-number hotline-text">9864006883</a>
+            </div>
+          </div>
+
+          <a href="/products" class="btn btn-secondary" style="padding: 9px 18px; font-size: 0.85rem; font-weight: 700;">
+            ← Continue Shopping
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Checkout Page Content -->
+  <main class="container checkout-page">
+
+    <!-- Breadcrumb Bar -->
+    <div class="checkout-breadcrumb-bar">
+      <div class="checkout-breadcrumbs">
+        <a href="/">Home</a>
+        <span>/</span>
+        <a href="/products">Products</a>
+        <span>/</span>
+        <span class="active">Secure Checkout</span>
+      </div>
+      <div class="checkout-security-badge">
+        <span>🔒</span>
+        <span>100% Genuine Onikuma Nepal Official Warranty</span>
+      </div>
+    </div>
+
+    <!-- Empty Cart State (Hidden by default, shown when cart is empty) -->
+    <div class="checkout-empty-state" id="checkoutEmptyState" style="display: none;">
+      <div class="empty-state-icon">🛒</div>
+      <h2 class="empty-state-title">Your Cart is Empty</h2>
+      <p class="empty-state-desc">You haven't added any gaming gear to your cart yet. Explore our top-rated headsets, mechanical keyboards, and gaming mice!</p>
+      <a href="/products" class="btn btn-primary" style="padding: 14px 28px; font-weight: 800;">
+        Explore All Products →
+      </a>
+    </div>
+
+    <!-- Order Confirmed State (Hidden by default, shown after successful order) -->
+    <div class="order-success-card" id="checkoutSuccessState" style="display: none;">
+      <div class="success-badge-icon">✓</div>
+      <h2 class="success-title">Thank You! Order Confirmed 🎉</h2>
+      <p class="success-desc">
+        Your order has been recorded in our Nepal fulfillment system. Our operations team will call you shortly to confirm courier dispatch.
+      </p>
+
+      <div class="success-details-box" id="successDetailsBox">
+        <!-- Rendered dynamically via JS -->
+      </div>
+
+      <div class="success-actions-row">
+        <a href="#" id="successWhatsAppTrackBtn" target="_blank" class="btn btn-whatsapp" style="padding: 13px 22px; font-weight: 700;">
+          💬 Confirm / Track on WhatsApp
+        </a>
+        <button type="button" class="btn btn-secondary" id="successTrackOrderBtn" style="padding: 13px 22px; font-weight: 700;">
+          📍 Track Order Status
+        </button>
+        <a href="/products" class="btn btn-primary" style="padding: 13px 22px; font-weight: 700;">
+          Continue Shopping
+        </a>
+      </div>
+    </div>
+
+    <!-- 2-Column Checkout Main Form Grid -->
+    <form id="checkoutMainForm" class="checkout-layout">
+
+      <!-- LEFT COLUMN: Customer Delivery & Payment Details -->
+      <div class="checkout-main-col">
+
+        <!-- Card 1: Delivery Details -->
+        <div class="checkout-card">
+          <div class="checkout-step-header">
+            <div class="checkout-step-num">1</div>
+            <div>
+              <h3 class="checkout-step-title">Delivery Address (Nepal)</h3>
+              <div class="checkout-step-subtitle">Where should we deliver your Onikuma gaming gear?</div>
+            </div>
+          </div>
+
+          <div class="checkout-form">
+            <!-- Full Name & Phone Number -->
+            <div class="checkout-row">
+              <div class="checkout-field">
+                <label class="checkout-label">
+                  <span>Full Name <span class="required">*</span></span>
+                </label>
+                <input type="text" name="fullName" class="checkout-input" placeholder="e.g. Ramesh Shrestha" required autocomplete="name">
+              </div>
+
+              <div class="checkout-field">
+                <label class="checkout-label">
+                  <span>Mobile Number (For Courier) <span class="required">*</span></span>
+                </label>
+                <input type="tel" name="phone" class="checkout-input" placeholder="e.g. 98XXXXXXXX" required autocomplete="tel">
+              </div>
+            </div>
+
+            <!-- Delivery Area (Calculates shipping live) -->
+            <div class="checkout-field">
+              <label class="checkout-label">
+                <span>Delivery Area <span class="required">*</span></span>
+              </label>
+              <select name="locationType" class="checkout-input" id="checkoutLocationType">
+                <option value="kathmandu">Inside Kathmandu Valley (Rs. 100 / FREE over Rs. 3,000)</option>
+                <option value="outside">Outside Valley (All 77 Districts) (Rs. 200 / FREE over Rs. 3,000)</option>
+              </select>
+            </div>
+
+            <!-- Street Address -->
+            <div class="checkout-field">
+              <label class="checkout-label">
+                <span>Street / Tole / House No. / Landmark <span class="required">*</span></span>
+              </label>
+              <input type="text" name="address" class="checkout-input" placeholder="e.g. New Road, House #42 / Near Chowk" required autocomplete="street-address">
+            </div>
+
+            <!-- City & District -->
+            <div class="checkout-row">
+              <div class="checkout-field">
+                <label class="checkout-label">
+                  <span>City / Municipality <span class="required">*</span></span>
+                </label>
+                <input type="text" name="city" class="checkout-input" placeholder="Kathmandu, Lalitpur, Pokhara, etc." required>
+              </div>
+
+              <div class="checkout-field">
+                <label class="checkout-label">
+                  <span>District <span class="optional">(Optional)</span></span>
+                </label>
+                <input type="text" name="district" class="checkout-input" placeholder="Kathmandu, Kaski, Morang, etc.">
+              </div>
+            </div>
+
+            <!-- Order Notes -->
+            <div class="checkout-field">
+              <label class="checkout-label">
+                <span>Delivery Notes / Instructions <span class="optional">(Optional)</span></span>
+              </label>
+              <textarea name="notes" class="checkout-input" placeholder="Special delivery instructions, preferred delivery time, call upon arrival..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Payment Method (COD and eSewa Only) -->
+        <div class="checkout-card">
+          <div class="checkout-step-header">
+            <div class="checkout-step-num">2</div>
+            <div>
+              <h3 class="checkout-step-title">Payment Method</h3>
+              <div class="checkout-step-subtitle">Choose your preferred payment method across Nepal</div>
+            </div>
+          </div>
+
+          <div class="payment-methods-grid">
+            <!-- Option 1: Cash on Delivery (COD) -->
+            <label class="payment-method-card active" id="cardMethodCod">
+              <input type="radio" name="paymentMethod" value="cod" checked>
+              <div class="method-icon-wrap icon-cod">💵</div>
+              <div class="method-info">
+                <div class="method-title">Cash on Delivery (COD)</div>
+                <div class="method-sub">Pay in cash or QR to delivery rider upon doorstep arrival</div>
+              </div>
+            </label>
+
+            <!-- Option 2: eSewa Mobile Wallet -->
+            <label class="payment-method-card" id="cardMethodEsewa">
+              <input type="radio" name="paymentMethod" value="esewa">
+              <div class="method-icon-wrap icon-esewa">🟢</div>
+              <div class="method-info">
+                <div class="method-title">eSewa Mobile Wallet</div>
+                <div class="method-sub">Pay directly via official eSewa wallet or QR</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Sticky Order Summary -->
+      <aside class="checkout-sidebar">
+        <div class="summary-card">
+          <div class="summary-header">
+            <h3 class="summary-title">Order Summary</h3>
+            <span class="summary-count" id="checkoutItemCountBadge">0 Items</span>
+          </div>
+
+          <!-- Items List -->
+          <div class="checkout-items-list" id="checkoutItemsContainer">
+            <!-- Rendered dynamically via JS -->
+          </div>
+
+          <!-- Promo Code Box -->
+          <div class="promo-box">
+            <input type="text" id="checkoutPromoInput" class="checkout-input promo-input" placeholder="PROMO CODE (e.g. ONIKUMA10)">
+            <button type="button" id="btnApplyPromo" class="btn btn-secondary promo-apply-btn">Apply</button>
+          </div>
+          <div class="promo-feedback-badge" id="promoFeedbackBadge"></div>
+
+          <!-- Price Calculations -->
+          <div class="totals-block">
+            <div class="totals-row">
+              <span>Subtotal</span>
+              <strong id="checkoutSubtotalVal">Rs. 0</strong>
+            </div>
+
+            <div class="totals-row discount-row" id="checkoutDiscountRow">
+              <span>Promo Discount</span>
+              <strong id="checkoutDiscountVal">- Rs. 0</strong>
+            </div>
+
+            <div class="totals-row">
+              <span>Estimated Delivery</span>
+              <strong id="checkoutDeliveryVal" style="color: var(--color-cyan);">Rs. 100</strong>
+            </div>
+
+            <div class="totals-row grand-total-row">
+              <span>Total Payable</span>
+              <span class="grand-total-val" id="checkoutGrandTotalVal">Rs. 0</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="checkout-actions-group">
+            <button type="submit" class="btn btn-primary btn-place-order" id="btnSubmitOrder">
+              <span>Place Order (Confirm)</span>
+              <span>→</span>
+            </button>
+
+            <button type="button" class="btn-whatsapp-order" id="btnWhatsAppCheckout">
+              <span>💬 Quick Order via WhatsApp</span>
+            </button>
+          </div>
+
+          <!-- Trust Guarantees -->
+          <div class="trust-badges-grid">
+            <div class="trust-badge-item">
+              <span class="check">✓</span>
+              <span>100% Genuine Onikuma Nepal Official Warranty</span>
+            </div>
+            <div class="trust-badge-item">
+              <span class="check">✓</span>
+              <span>7-Day Replacement Guarantee for Defective Units</span>
+            </div>
+            <div class="trust-badge-item">
+              <span class="check">✓</span>
+              <span>Doorstep Delivery Across All 77 Districts in Nepal</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+    </form>
+
+  </main>
+
+  <!-- Track Order Modal -->
+  <div class="track-modal-overlay" id="trackOrderModal" role="dialog" aria-modal="true" aria-labelledby="trackModalTitle">
+    <div class="track-modal-card">
+      <div class="track-modal-header">
+        <div class="track-modal-title-group">
+          <span class="track-modal-icon">📍</span>
+          <div>
+            <h3 id="trackModalTitle" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #fff;">Track Your Order</h3>
+            <p style="margin: 2px 0 0; font-size: 0.76rem; color: var(--text-secondary);">Real-time dispatch &amp; delivery tracking across Nepal</p>
+          </div>
+        </div>
+        <button type="button" class="btn-track-close" id="btnCloseTrackModal" aria-label="Close">✕</button>
+      </div>
+
+      <form class="track-search-form" id="trackOrderForm">
+        <div class="track-input-wrapper">
+          <input type="text" id="trackOrderInput" class="track-input" placeholder="Enter Order # (e.g. ONK-123456) or Phone #" required autocomplete="off">
+          <button type="submit" class="btn btn-primary track-submit-btn" id="btnSubmitTrack">
+            <span>Track 🚀</span>
+          </button>
+        </div>
+      </form>
+
+      <div class="track-results-area" id="trackResultsArea">
+        <div class="track-not-found" style="border:none;background:transparent;padding:20px 10px;">
+          <div style="font-size:2rem;margin-bottom:8px;">📦</div>
+          <h4 style="font-size:0.95rem;color:var(--text-secondary);margin:0;">Enter your Order ID (from checkout) or registered mobile number to check delivery progress.</h4>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="main-footer" style="margin-top: 50px; padding: 30px 0; border-top: 1px solid var(--border-subtle); background: var(--bg-surface);">
+    <div class="container" style="text-align: center; color: var(--text-muted); font-size: 0.85rem;">
+      <p style="margin: 0 0 8px 0; color: var(--text-secondary);">
+        Need help with your order? Call our Kathmandu Support Team at <a href="tel:9864006883" style="color: var(--color-primary); font-weight: 700;">+977 9864006883</a>
+      </p>
+      <div>© 2026 ONIKUMA NEPAL. Official Distributor & Importer. All Rights Reserved.</div>
+    </div>
+  </footer>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Script Modules -->
+  <script type="module" src="/js/checkout.js"></script>
+</body>
+</html>

@@ -88,6 +88,11 @@ app.get('/product', (req, res) => {
   res.sendFile(path.join(rootDir, 'public', 'product.html'));
 });
 
+// Dedicated Checkout Page
+app.get('/checkout', (req, res) => {
+  res.sendFile(path.join(rootDir, 'public', 'checkout.html'));
+});
+
 // Catch-all route to serve index.html
 app.get('*', (req, res) => {
   res.sendFile(path.join(rootDir, 'public', 'index.html'));

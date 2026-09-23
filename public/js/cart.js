@@ -306,4 +306,17 @@ function setupCartEventListeners() {
 
   const backdrop = document.getElementById('drawerBackdrop');
   if (backdrop) backdrop.addEventListener('click', closeCartDrawer);
+
+  const proceedBtn = document.getElementById('btnProceedCheckout');
+  if (proceedBtn) {
+    proceedBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (cart.length === 0) {
+        showToast('Your cart is empty! Please add products before checking out.', 'warning');
+        return;
+      }
+      closeCartDrawer();
+      window.location.href = '/checkout';
+    });
+  }
 }

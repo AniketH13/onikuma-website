@@ -202,7 +202,7 @@
           <div class="feature-icon">💳</div>
           <div>
             <div class="feature-title">COD & Digital Pay</div>
-            <div class="feature-sub">Cash on Delivery, eSewa, Khalti, and Fonepay QR</div>
+            <div class="feature-sub">Cash on Delivery & eSewa Mobile Wallet</div>
           </div>
         </div>
         <div class="feature-box">
@@ -302,9 +302,7 @@
           </p>
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <span class="badge badge-cod">Cash on Delivery</span>
-            <span class="badge badge-esewa">eSewa</span>
-            <span class="badge badge-khalti">Khalti</span>
-            <span class="badge badge-fonepay">Fonepay QR</span>
+            <span class="badge badge-esewa">eSewa Mobile Wallet</span>
           </div>
         </div>
 
@@ -356,183 +354,7 @@
     </div>
   </aside>
 
-  <!-- Google Stitch Inspired 2-Column Checkout Modal -->
-  <div class="checkout-modal-wrapper" id="checkoutModal">
-    <div class="checkout-container">
-      
-      <div class="checkout-header">
-        <div class="checkout-header-title">
-          <img src="/images/logo.png" alt="Onikuma" style="height: 32px; width: auto; object-fit: contain;">
-          <h2>Checkout & Shipping</h2>
-        </div>
-        <div class="checkout-close-btn" id="checkoutCloseBtn">✕</div>
-      </div>
-
-      <div class="checkout-body" id="checkoutBody">
-        
-        <!-- Left: Customer Information Form -->
-        <div class="checkout-form-column">
-          <h3 class="checkout-section-title">1. Delivery Details (Nepal)</h3>
-          
-          <form id="checkoutForm">
-            <div class="checkout-form-grid">
-              
-              <div class="form-group-full">
-                <label class="form-label">Full Name *</label>
-                <input type="text" name="fullName" class="form-control" placeholder="e.g. Ramesh Shrestha" required>
-              </div>
-
-              <div>
-                <label class="form-label">Phone Number (Nepal Mobile) *</label>
-                <input type="tel" name="phone" class="form-control" placeholder="98XXXXXXXX" required>
-              </div>
-
-              <div>
-                <label class="form-label">Email Address (Optional)</label>
-                <input type="email" name="email" class="form-control" placeholder="email@domain.com">
-              </div>
-
-              <div>
-                <label class="form-label">Delivery Location *</label>
-                <select name="locationType" class="form-control" id="checkoutLocationType">
-                  <option value="inside">Inside Kathmandu Valley (Same/Next Day)</option>
-                  <option value="outside">Outside Valley (2-4 Days)</option>
-                </select>
-              </div>
-
-              <div>
-                <label class="form-label">City / Town *</label>
-                <input type="text" name="city" class="form-control" placeholder="e.g. Kathmandu / Pokhara" required>
-              </div>
-
-              <div class="form-group-full">
-                <label class="form-label">Street Address & Landmark *</label>
-                <input type="text" name="address" class="form-control" placeholder="e.g. New Road, near Ranjana Mall" required>
-              </div>
-
-              <div>
-                <label class="form-label">District</label>
-                <input type="text" name="district" class="form-control" placeholder="Kathmandu" value="Kathmandu">
-              </div>
-
-              <div>
-                <label class="form-label">Province</label>
-                <select name="province" class="form-control">
-                  <option value="Bagmati">Bagmati Province</option>
-                  <option value="Gandaki">Gandaki Province</option>
-                  <option value="Koshi">Koshi Province</option>
-                  <option value="Madhesh">Madhesh Province</option>
-                  <option value="Lumbini">Lumbini Province</option>
-                  <option value="Karnali">Karnali Province</option>
-                  <option value="Sudurpashchim">Sudurpashchim Province</option>
-                </select>
-              </div>
-
-              <div class="form-group-full">
-                <label class="form-label">Order Notes / Instructions (Optional)</label>
-                <input type="text" name="notes" class="form-control" placeholder="Deliver after 2 PM, call before arrival, etc.">
-              </div>
-
-            </div>
-
-            <!-- Payment Methods -->
-            <h3 class="checkout-section-title">2. Select Payment Method</h3>
-            <div class="payment-methods-grid">
-              
-              <label class="payment-method-card active">
-                <input type="radio" name="paymentMethod" value="cod" checked>
-                <div class="payment-badge-icon badge-cod">💵</div>
-                <div class="payment-info">
-                  <span class="payment-name">Cash on Delivery</span>
-                  <span class="payment-desc">Pay cash when package arrives</span>
-                </div>
-              </label>
-
-              <label class="payment-method-card">
-                <input type="radio" name="paymentMethod" value="esewa">
-                <div class="payment-badge-icon badge-esewa">eS</div>
-                <div class="payment-info">
-                  <span class="payment-name">eSewa Mobile Wallet</span>
-                  <span class="payment-desc">Digital payment via eSewa ID</span>
-                </div>
-              </label>
-
-              <label class="payment-method-card">
-                <input type="radio" name="paymentMethod" value="khalti">
-                <div class="payment-badge-icon badge-khalti">Kh</div>
-                <div class="payment-info">
-                  <span class="payment-name">Khalti Wallet</span>
-                  <span class="payment-desc">Pay instantly with Khalti</span>
-                </div>
-              </label>
-
-              <label class="payment-method-card">
-                <input type="radio" name="paymentMethod" value="fonepay">
-                <div class="payment-badge-icon badge-fonepay">QR</div>
-                <div class="payment-info">
-                  <span class="payment-name">Fonepay QR Scan</span>
-                  <span class="payment-desc">Scan & Pay via any Nepal Bank App</span>
-                </div>
-              </label>
-
-            </div>
-
-            <!-- Action Buttons -->
-            <div class="checkout-actions-block">
-              <button type="submit" class="btn btn-primary btn-place-order" id="btnSubmitOrder">
-                Place Order (Confirm)
-              </button>
-              <button type="button" class="btn btn-whatsapp btn-whatsapp-order" id="btnWhatsAppCheckout">
-                <span>💬</span> 1-Click WhatsApp Order (+977 9864006883)
-              </button>
-            </div>
-
-          </form>
-        </div>
-
-        <!-- Right: Order Summary -->
-        <div class="checkout-summary-column">
-          <div class="checkout-summary-box">
-            <h3 class="checkout-section-title" style="margin-bottom: 12px;">Order Summary</h3>
-            
-            <div class="checkout-items-list" id="checkoutItemsContainer"></div>
-
-            <!-- Promo Code Input -->
-            <div class="checkout-promo-box" style="margin: 16px 0 10px; display: flex; gap: 8px;">
-              <input type="text" id="checkoutPromoInput" placeholder="Promo code (e.g. ONIKUMA10)" class="form-control" style="text-transform: uppercase; font-size: 0.82rem; font-family: var(--font-mono); font-weight: 700;">
-              <button type="button" class="btn btn-secondary" id="btnApplyPromo" style="white-space: nowrap; font-size: 0.82rem; padding: 6px 14px;">Apply</button>
-            </div>
-            <div id="promoAppliedBadge" style="display: none; font-size: 0.78rem; color: var(--color-emerald); font-weight: 700; margin-bottom: 12px;"></div>
-
-            <div class="checkout-totals-block">
-              <div class="total-line">
-                <span>Subtotal:</span>
-                <span id="checkoutSubtotalVal">Rs. 0</span>
-              </div>
-              <div class="total-line" id="checkoutDiscountRow" style="display: none; color: var(--color-emerald);">
-                <span>Promo Discount:</span>
-                <span id="checkoutDiscountVal">- Rs. 0</span>
-              </div>
-              <div class="total-line">
-                <span>Estimated Delivery:</span>
-                <span id="checkoutDeliveryVal" style="color: var(--color-emerald); font-weight: 700;">Rs. 100</span>
-              </div>
-              <div class="total-line total-line-grand">
-                <span>Total Amount:</span>
-                <span class="grand-price" id="checkoutGrandTotalVal">Rs. 0</span>
-              </div>
-            </div>
-
-            <div style="margin-top: 16px; font-size: 0.76rem; color: var(--text-muted); line-height: 1.4;">
-              🔒 <strong>Safe & Secure:</strong> Orders are confirmed via phone or WhatsApp before dispatch from our Kathmandu hub.
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-    </div>
-  </div>
+  <!-- Dedicated Checkout Page at /checkout (Modal removed for clean single-page experience) -->
 
   <!-- Quick View Modal -->
   <div class="modal-overlay" id="quickViewModal">

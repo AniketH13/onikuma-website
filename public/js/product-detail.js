@@ -254,7 +254,7 @@ function renderProductDetails(p) {
     if (btnBuyNow) {
       btnBuyNow.onclick = async () => {
         addToCart(p, currentQuantity);
-        openCheckoutModal();
+        window.location.href = '/checkout';
       };
     }
   }
