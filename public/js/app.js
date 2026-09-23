@@ -7,7 +7,6 @@ import { initCheckout } from './checkout.js';
 
 let allCategories = [];
 let currentCategoryFilter = 'all';
-let wishlist = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
   initCart();
@@ -22,7 +21,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   initHeroSlider();
   initCountdownTimer();
   setupNavigationEvents();
-  setupWishlistEvents();
 
   // Listen to custom search filter event from search form
   window.addEventListener('filter-products-search', async (e) => {
@@ -200,7 +198,6 @@ function renderProductGrid(products) {
   }
 
   grid.innerHTML = displayProducts.map(p => {
-    const isWished = wishlist.has(p._id);
     const salePrice = p.salePrice || p.regularPrice;
     const regularPrice = p.regularPrice;
     const discountPercent = regularPrice > salePrice ? Math.round(((regularPrice - salePrice) / regularPrice) * 100) : 0;
@@ -221,9 +218,6 @@ function renderProductGrid(products) {
 
           <div class="product-hover-actions">
             <a href="/product?id=${p.slug || p._id}" class="action-circle-btn" title="View Product Details">👁️</a>
-            <button class="action-circle-btn btn-wishlist-toggle ${isWished ? 'wished' : ''}" data-id="${p._id}" title="Wishlist">
-              ${isWished ? '❤️' : '🤍'}
-            </button>
           </div>
 
           <a href="/product?id=${p.slug || p._id}" class="product-img-link" style="display: block; width: 100%; height: 100%;">
@@ -287,21 +281,6 @@ function renderProductGrid(products) {
     });
   });
 
-  grid.querySelectorAll('.btn-wishlist-toggle').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      if (wishlist.has(id)) {
-        wishlist.delete(id);
-        btn.textContent = '🤍';
-        showToast('Removed from wishlist');
-      } else {
-        wishlist.add(id);
-        btn.textContent = '❤️';
-        showToast('Saved to your wishlist!', 'success');
-      }
-      updateWishlistBadge();
-    });
-  });
 }
 
 async function filterByCategory(slug) {
@@ -432,24 +411,6 @@ function toggleCategoryDropdown(show) {
   }
 }
 
-function setupWishlistEvents() {
-  const wishlistBtn = document.getElementById('headerWishlistBtn');
-  if (wishlistBtn) {
-    wishlistBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (wishlist.size === 0) {
-        showToast('Your wishlist is empty. Tap the heart on products to save them!');
-      } else {
-        showToast(`You have ${wishlist.size} saved items in your wishlist!`, 'success');
-      }
-    });
-  }
-}
-
-function updateWishlistBadge() {
-  const badge = document.getElementById('wishlistCountBadge');
-  if (badge) badge.textContent = wishlist.size;
-}
 
 // ---------------- TOAST NOTIFICATION ---------------- //
 export function showToast(message, type = 'info') {
