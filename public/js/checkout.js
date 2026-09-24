@@ -1,5 +1,5 @@
 // Single Page Checkout Controller for Onikuma Nepal
-import { getCart, getSubtotal, clearCart, syncCartStock } from './cart.js';
+import { loadCart, getCart, getSubtotal, clearCart, syncCartStock } from './cart.js';
 import { createOrder, fetchSettings } from './api.js';
 import { showToast } from './toast.js';
 import { initTrackOrder, openTrackModal } from './track-order.js';
@@ -59,6 +59,9 @@ async function initCheckoutPage() {
   } catch (err) {
     // Ignore track order init if not present
   }
+
+  // Hydrate in-memory cart from localStorage (app.js is not loaded on this page)
+  loadCart();
 
   // Synchronize stock levels with server
   await syncCartStock();

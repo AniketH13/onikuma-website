@@ -65,6 +65,20 @@ export function initCart() {
   syncCartStock();
 }
 
+/**
+ * Lightweight cart hydration from localStorage — no UI updates,
+ * no event listeners, no stock sync. Use on pages that don't have
+ * the cart drawer (e.g. checkout.html).
+ */
+export function loadCart() {
+  try {
+    const saved = localStorage.getItem(CART_STORAGE_KEY);
+    cart = saved ? JSON.parse(saved) : [];
+  } catch (e) {
+    cart = [];
+  }
+}
+
 export function getCart() {
   return cart;
 }
