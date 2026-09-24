@@ -262,13 +262,12 @@ router.post('/batch-delete', async (req, res) => {
     if (getMongoStatus()) {
       const mongoose = (await import('mongoose')).default;
       const validObjectIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
-      const result = await Product.deleteMany({
-        $or: [
-          { _id: { $in: validObjectIds } },
-          { _id: { $in: ids } },
-          { slug: { $in: ids } }
-        ]
-      });
+      const orConditions = [{ slug: { $in: ids } }];
+      if (validObjectIds.length > 0) {
+        orConditions.push({ _id: { $in: validObjectIds } });
+      }
+
+      const result = await Product.deleteMany({ $or: orConditions });
       return res.json({
         success: true,
         message: `Successfully deleted ${result.deletedCount || ids.length} product(s)`,
@@ -294,7 +293,14 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     if (getMongoStatus()) {
-      const deleted = await Product.findByIdAndDelete(id);
+      const mongoose = (await import('mongoose')).default;
+      let deleted = null;
+      if (mongoose.Types.ObjectId.isValid(id)) {
+        deleted = await Product.findByIdAndDelete(id);
+      }
+      if (!deleted) {
+        deleted = await Product.findOneAndDelete({ slug: id });
+      }
       if (!deleted) return res.status(404).json({ success: false, message: 'Product not found' });
       return res.json({ success: true, message: 'Product deleted successfully' });
     }

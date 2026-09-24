@@ -3,7 +3,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { connectDB, getMongoStatus, autoSeedDatabase } from './db/connect.js';
+import { connectDB, getMongoStatus, getMongoError, autoSeedDatabase } from './db/connect.js';
 import categoriesRouter from './routes/categories.js';
 import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
@@ -56,6 +56,7 @@ app.get('/api/health', (req, res) => {
     environment: isProduction ? 'production' : 'development',
     store: 'Onikuma Nepal Official Store API',
     mongoConnected: getMongoStatus(),
+    mongoError: getMongoError(),
     timestamp: new Date()
   });
 });
