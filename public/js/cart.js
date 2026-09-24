@@ -246,6 +246,11 @@ export function updateCartUI() {
     }
   }
 
+  const clearBtn = document.getElementById('btnClearCart');
+  if (clearBtn) {
+    clearBtn.style.display = cart.length > 0 ? 'inline-block' : 'none';
+  }
+
   // Render items list
   if (cartItemsContainer) {
     if (cart.length === 0) {
@@ -343,6 +348,18 @@ function setupCartEventListeners() {
 
   const backdrop = document.getElementById('drawerBackdrop');
   if (backdrop) backdrop.addEventListener('click', closeCartDrawer);
+
+  const clearBtn = document.getElementById('btnClearCart');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (cart.length === 0) return;
+      if (confirm('Clear all items from your shopping cart?')) {
+        clearCart();
+        showToast('Shopping cart cleared', 'info');
+      }
+    });
+  }
 
   const proceedBtn = document.getElementById('btnProceedCheckout');
   if (proceedBtn) {
