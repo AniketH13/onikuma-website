@@ -1,7 +1,7 @@
 // Admin Dashboard Operations Module for Onikuma Nepal
 import {
   fetchCategories, createCategory, deleteCategory,
-  fetchProducts, createProduct, updateProduct, deleteProduct, updateProductStock,
+  fetchProducts, createProduct, updateProduct, deleteProduct, deleteProductsBatch, updateProductStock,
   fetchOrders, updateOrderStatus,
   fetchSettings, updateSettings,
   fetchAnalytics,
@@ -16,6 +16,7 @@ let products = [];
 let orders = [];
 let settings = {};
 let formsInitialized = false;
+let selectedProductIds = new Set();
 
 // Product Photo Uploads State (Stores data URLs or existing URLs)
 let addProdPhotos = [];
@@ -261,17 +262,62 @@ export async function refreshProducts() {
   renderStockTable();
 }
 
+function updateProductBulkToolbar() {
+  const toolbar = document.getElementById('productsBulkToolbar');
+  const countLabel = document.getElementById('bulkSelectedCount');
+  const btnCount = document.getElementById('bulkDeleteBtnCount');
+  const selectAll = document.getElementById('selectAllProducts');
+
+  const count = selectedProductIds.size;
+  if (toolbar) {
+    toolbar.style.display = count > 0 ? 'flex' : 'none';
+  }
+  if (countLabel) {
+    countLabel.textContent = `${count} product${count === 1 ? '' : 's'} selected`;
+  }
+  if (btnCount) {
+    btnCount.textContent = count;
+  }
+  if (selectAll) {
+    if (products.length === 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    } else if (count === products.length) {
+      selectAll.checked = true;
+      selectAll.indeterminate = false;
+    } else if (count > 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = true;
+    } else {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    }
+  }
+}
+
 function renderProductsTable() {
   const tbody = document.getElementById('productsTableBody');
   if (!tbody) return;
 
+  // Clean up any stale IDs from selectedProductIds
+  const currentIds = new Set(products.map(p => p._id));
+  for (const id of Array.from(selectedProductIds)) {
+    if (!currentIds.has(id)) selectedProductIds.delete(id);
+  }
+  updateProductBulkToolbar();
+
   if (products.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No products created yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No products created yet.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = products.map((prod, i) => `
-    <tr>
+  tbody.innerHTML = products.map((prod, i) => {
+    const isChecked = selectedProductIds.has(prod._id);
+    return `
+    <tr class="${isChecked ? 'row-selected' : ''}" data-id="${prod._id}">
+      <td style="text-align: center;">
+        <input type="checkbox" class="product-row-checkbox" data-id="${prod._id}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--color-primary);">
+      </td>
       <td>${i + 1}</td>
       <td>
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -299,7 +345,24 @@ function renderProductsTable() {
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+
+  // Row selection checkboxes
+  tbody.querySelectorAll('.product-row-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.getAttribute('data-id');
+      const row = cb.closest('tr');
+      if (cb.checked) {
+        selectedProductIds.add(id);
+        if (row) row.classList.add('row-selected');
+      } else {
+        selectedProductIds.delete(id);
+        if (row) row.classList.remove('row-selected');
+      }
+      updateProductBulkToolbar();
+    });
+  });
 
   // Edit product button
   tbody.querySelectorAll('.btn-edit-prod').forEach(btn => {
@@ -311,12 +374,14 @@ function renderProductsTable() {
     });
   });
 
+  // Single delete button
   tbody.querySelectorAll('.btn-del-prod').forEach(btn => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       if (confirm('Delete this product from catalog?')) {
         const res = await deleteProduct(id);
         if (res.success) {
+          selectedProductIds.delete(id);
           showAdminToast('Product deleted successfully');
           await refreshProducts();
         } else {
@@ -325,6 +390,64 @@ function renderProductsTable() {
       }
     });
   });
+}
+
+function setupProductBulkActions() {
+  const selectAll = document.getElementById('selectAllProducts');
+  const clearBtn = document.getElementById('btnClearSelectedProducts');
+  const deleteBtn = document.getElementById('btnDeleteSelectedProducts');
+
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      if (selectAll.checked) {
+        products.forEach(p => selectedProductIds.add(p._id));
+      } else {
+        selectedProductIds.clear();
+      }
+      renderProductsTable();
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      selectedProductIds.clear();
+      renderProductsTable();
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const count = selectedProductIds.size;
+      if (count === 0) return;
+
+      const confirmMsg = `Are you sure you want to permanently delete ${count} selected product${count === 1 ? '' : 's'} from the catalog? This action cannot be undone.`;
+      if (!confirm(confirmMsg)) return;
+
+      deleteBtn.disabled = true;
+      const originalHtml = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = `<span>⏳</span> Deleting ${count} items...`;
+
+      try {
+        const idsToDelete = Array.from(selectedProductIds);
+        const res = await deleteProductsBatch(idsToDelete);
+
+        if (res.success) {
+          showAdminToast(res.message || `${count} products deleted successfully`);
+          selectedProductIds.clear();
+          await refreshProducts();
+        } else {
+          alert('Could not delete selected products: ' + (res.message || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Batch delete error:', err);
+        alert('An error occurred while deleting: ' + err.message);
+      } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = originalHtml;
+        updateProductBulkToolbar();
+      }
+    });
+  }
 }
 
 // Photo Upload & Preview Utilities
@@ -1393,6 +1516,8 @@ function setupForms() {
       renderStockTable(e.target.value.trim());
     });
   }
+
+  setupProductBulkActions();
 }
 
 function showAdminToast(msg) {

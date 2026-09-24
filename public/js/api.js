@@ -187,6 +187,34 @@ export async function deleteProduct(id) {
   }
 }
 
+export async function deleteProductsBatch(ids) {
+  try {
+    const res = await fetch(`${API_BASE}/products/batch-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Batch delete endpoint unavailable, falling back to parallel delete:', err);
+  }
+
+  // Graceful fallback to parallel individual deletions
+  try {
+    const results = await Promise.all(ids.map(id => deleteProduct(id)));
+    const successCount = results.filter(r => r && r.success).length;
+    return {
+      success: successCount > 0,
+      message: `Successfully deleted ${successCount} product(s)`,
+      deletedCount: successCount
+    };
+  } catch (fallbackErr) {
+    return { success: false, message: fallbackErr.message };
+  }
+}
+
 export async function checkHealth() {
   try {
     const res = await fetch(`${API_BASE}/health`);

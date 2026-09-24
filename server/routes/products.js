@@ -251,6 +251,44 @@ router.patch('/:id/stock', async (req, res) => {
   }
 });
 
+// POST bulk delete products
+router.post('/batch-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No product IDs provided' });
+    }
+
+    if (getMongoStatus()) {
+      const mongoose = (await import('mongoose')).default;
+      const validObjectIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+      const result = await Product.deleteMany({
+        $or: [
+          { _id: { $in: validObjectIds } },
+          { _id: { $in: ids } },
+          { slug: { $in: ids } }
+        ]
+      });
+      return res.json({
+        success: true,
+        message: `Successfully deleted ${result.deletedCount || ids.length} product(s)`,
+        deletedCount: result.deletedCount
+      });
+    }
+
+    const initialLength = fallbackStore.products.length;
+    fallbackStore.products = fallbackStore.products.filter(p => !ids.includes(p._id) && !ids.includes(p.slug));
+    const deletedCount = initialLength - fallbackStore.products.length;
+    return res.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} product(s)`,
+      deletedCount
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // DELETE product
 router.delete('/:id', async (req, res) => {
   try {
