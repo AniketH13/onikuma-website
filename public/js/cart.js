@@ -17,10 +17,13 @@ export async function syncCartStock(liveProducts = null) {
       return;
     }
   }
-  if (!Array.isArray(products) || products.length === 0) return;
+  if (!Array.isArray(products)) return;
+  if (!cart || cart.length === 0) return;
 
   let changed = false;
   const itemsAdjusted = [];
+  const itemsRemoved = [];
+  const validCart = [];
 
   cart.forEach(item => {
     // Robust fuzzy matching by ID, slug, modelCode, or title
@@ -31,23 +34,43 @@ export async function syncCartStock(liveProducts = null) {
       (item.title && p.title && item.title.trim().toLowerCase() === p.title.trim().toLowerCase())
     );
 
-    if (prod) {
-      const liveStock = prod.stockCount !== undefined ? Number(prod.stockCount) : 15;
-      item.maxStock = liveStock;
-      if (item.quantity > liveStock) {
-        itemsAdjusted.push({ title: item.title, from: item.quantity, to: Math.max(0, liveStock) });
-        item.quantity = Math.max(0, liveStock);
-        changed = true;
-      }
+    if (!prod) {
+      // Product was deleted from store catalog
+      itemsRemoved.push(item.title);
+      changed = true;
+      return;
     }
+
+    const liveStock = prod.stockCount !== undefined ? Number(prod.stockCount) : 15;
+    item.maxStock = liveStock;
+
+    if (liveStock <= 0 || !prod.inStock) {
+      itemsRemoved.push(`${item.title} (out of stock)`);
+      changed = true;
+      return;
+    }
+
+    if (item.quantity > liveStock) {
+      itemsAdjusted.push({ title: item.title, from: item.quantity, to: liveStock });
+      item.quantity = liveStock;
+      changed = true;
+    }
+
+    validCart.push(item);
   });
 
-  saveCart();
-  updateCartUI();
+  if (changed) {
+    cart = validCart;
+    saveCart();
+    updateCartUI();
 
-  if (changed && itemsAdjusted.length > 0) {
-    const details = itemsAdjusted.map(a => `"${a.title}": adjusted from ${a.from} to ${a.to} (max available in stock)`).join('\n');
-    console.info('Cart clamped to available stock:\n' + details);
+    if (itemsRemoved.length > 0) {
+      showToast(`Removed deleted/unavailable item(s) from your cart: ${itemsRemoved.join(', ')}`, 'info');
+    }
+    if (itemsAdjusted.length > 0) {
+      const details = itemsAdjusted.map(a => `"${a.title}": adjusted from ${a.from} to ${a.to} (max available in stock)`).join('\n');
+      console.info('Cart clamped to available stock:\n' + details);
+    }
   }
 }
 
