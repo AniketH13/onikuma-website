@@ -1,8 +1,8 @@
 // Admin Dashboard Operations Module for Onikuma Nepal
 import {
-  fetchCategories, createCategory, deleteCategory,
+  fetchCategories, createCategory, deleteCategory, deleteCategoriesBatch,
   fetchProducts, createProduct, updateProduct, deleteProduct, deleteProductsBatch, updateProductStock,
-  fetchOrders, updateOrderStatus,
+  fetchOrders, updateOrderStatus, deleteOrder, deleteOrdersBatch,
   fetchSettings, updateSettings,
   fetchAnalytics,
   checkHealth, loginAdmin, verifyAdminSession,
@@ -17,6 +17,8 @@ let orders = [];
 let settings = {};
 let formsInitialized = false;
 let selectedProductIds = new Set();
+let selectedCategoryIds = new Set();
+let selectedOrderIds = new Set();
 
 // Product Photo Uploads State (Stores data URLs or existing URLs)
 let addProdPhotos = [];
@@ -204,17 +206,63 @@ export async function refreshCategories() {
   populateCategorySelects();
 }
 
+function updateCategoryBulkToolbar() {
+  const toolbar = document.getElementById('categoriesBulkToolbar');
+  const countLabel = document.getElementById('bulkSelectedCategoriesCount');
+  const btnCount = document.getElementById('bulkDeleteCategoriesBtnCount');
+  const selectAll = document.getElementById('selectAllCategories');
+
+  const count = selectedCategoryIds.size;
+  if (toolbar) {
+    toolbar.style.display = count > 0 ? 'flex' : 'none';
+  }
+  if (countLabel) {
+    countLabel.textContent = `${count} categor${count === 1 ? 'y' : 'ies'} selected`;
+  }
+  if (btnCount) {
+    btnCount.textContent = count;
+  }
+  if (selectAll) {
+    if (categories.length === 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    } else if (count === categories.length) {
+      selectAll.checked = true;
+      selectAll.indeterminate = false;
+    } else if (count > 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = true;
+    } else {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    }
+  }
+}
+
 function renderCategoriesTable() {
   const tbody = document.getElementById('categoriesTableBody');
   if (!tbody) return;
 
+  // Clean up any stale IDs from selectedCategoryIds
+  const currentIds = new Set(categories.map(c => c._id || c.slug));
+  for (const id of Array.from(selectedCategoryIds)) {
+    if (!currentIds.has(id)) selectedCategoryIds.delete(id);
+  }
+  updateCategoryBulkToolbar();
+
   if (categories.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No categories created yet.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No categories created yet.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = categories.map((cat, i) => `
-    <tr>
+  tbody.innerHTML = categories.map((cat, i) => {
+    const catId = cat._id || cat.slug;
+    const isChecked = selectedCategoryIds.has(catId);
+    return `
+    <tr class="${isChecked ? 'row-selected' : ''}" data-id="${catId}">
+      <td style="text-align: center;">
+        <input type="checkbox" class="category-row-checkbox" data-id="${catId}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--color-primary);">
+      </td>
       <td>${i + 1}</td>
       <td>
         <span style="font-size: 1.2rem; margin-right: 8px;">${cat.icon || '📁'}</span>
@@ -226,18 +274,37 @@ function renderCategoriesTable() {
       </td>
       <td>
         <div class="table-actions">
-          <button class="btn-icon-action delete btn-del-cat" data-id="${cat._id}" title="Delete Category">🗑️</button>
+          <button class="btn-icon-action delete btn-del-cat" data-id="${catId}" title="Delete Category">🗑️</button>
         </div>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 
+  // Row selection checkboxes
+  tbody.querySelectorAll('.category-row-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.getAttribute('data-id');
+      const row = cb.closest('tr');
+      if (cb.checked) {
+        selectedCategoryIds.add(id);
+        if (row) row.classList.add('row-selected');
+      } else {
+        selectedCategoryIds.delete(id);
+        if (row) row.classList.remove('row-selected');
+      }
+      updateCategoryBulkToolbar();
+    });
+  });
+
+  // Single delete button
   tbody.querySelectorAll('.btn-del-cat').forEach(btn => {
     btn.addEventListener('click', async (e) => {
       const id = btn.getAttribute('data-id');
       if (confirm('Are you sure you want to delete this category? It will also be removed from the storefront navigation dropdown.')) {
         const res = await deleteCategory(id);
         if (res.success) {
+          selectedCategoryIds.delete(id);
           showAdminToast('Category deleted successfully');
           await refreshCategories();
         } else {
@@ -246,6 +313,64 @@ function renderCategoriesTable() {
       }
     });
   });
+}
+
+function setupCategoryBulkActions() {
+  const selectAll = document.getElementById('selectAllCategories');
+  const clearBtn = document.getElementById('btnClearSelectedCategories');
+  const deleteBtn = document.getElementById('btnDeleteSelectedCategories');
+
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      if (selectAll.checked) {
+        categories.forEach(c => selectedCategoryIds.add(c._id || c.slug));
+      } else {
+        selectedCategoryIds.clear();
+      }
+      renderCategoriesTable();
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      selectedCategoryIds.clear();
+      renderCategoriesTable();
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const count = selectedCategoryIds.size;
+      if (count === 0) return;
+
+      const confirmMsg = `Are you sure you want to permanently delete ${count} selected categor${count === 1 ? 'y' : 'ies'}? This action cannot be undone.`;
+      if (!confirm(confirmMsg)) return;
+
+      deleteBtn.disabled = true;
+      const originalHtml = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = `<span>⏳</span> Deleting ${count} categories...`;
+
+      try {
+        const idsToDelete = Array.from(selectedCategoryIds);
+        const res = await deleteCategoriesBatch(idsToDelete);
+
+        if (res.success) {
+          showAdminToast(res.message || `${count} categories deleted successfully`);
+          selectedCategoryIds.clear();
+          await refreshCategories();
+        } else {
+          alert('Could not delete selected categories: ' + (res.message || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Batch delete categories error:', err);
+        alert('An error occurred while deleting categories: ' + err.message);
+      } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = originalHtml;
+        updateCategoryBulkToolbar();
+      }
+    });
+  }
 }
 
 function populateCategorySelects() {
@@ -1032,19 +1157,65 @@ function renderOrderStatusControl(order) {
   `;
 }
 
+function updateOrderBulkToolbar() {
+  const toolbar = document.getElementById('ordersBulkToolbar');
+  const countLabel = document.getElementById('bulkSelectedOrdersCount');
+  const btnCount = document.getElementById('bulkDeleteOrdersBtnCount');
+  const selectAll = document.getElementById('selectAllOrders');
+
+  const count = selectedOrderIds.size;
+  if (toolbar) {
+    toolbar.style.display = count > 0 ? 'flex' : 'none';
+  }
+  if (countLabel) {
+    countLabel.textContent = `${count} order${count === 1 ? '' : 's'} selected`;
+  }
+  if (btnCount) {
+    btnCount.textContent = count;
+  }
+  if (selectAll) {
+    if (orders.length === 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    } else if (count === orders.length) {
+      selectAll.checked = true;
+      selectAll.indeterminate = false;
+    } else if (count > 0) {
+      selectAll.checked = false;
+      selectAll.indeterminate = true;
+    } else {
+      selectAll.checked = false;
+      selectAll.indeterminate = false;
+    }
+  }
+}
+
 function renderOrdersTable() {
   const tbody = document.getElementById('ordersTableBody');
   const countBadge = document.getElementById('orderCountBadge');
   if (countBadge) countBadge.textContent = orders.length;
   if (!tbody) return;
 
+  // Clean up any stale IDs from selectedOrderIds
+  const currentIds = new Set(orders.map(o => o._id || o.orderNumber));
+  for (const id of Array.from(selectedOrderIds)) {
+    if (!currentIds.has(id)) selectedOrderIds.delete(id);
+  }
+  updateOrderBulkToolbar();
+
   if (orders.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No orders recorded yet. Checkout orders will appear here in real time.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No orders recorded yet. Checkout orders will appear here in real time.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = orders.map(order => `
-    <tr>
+  tbody.innerHTML = orders.map(order => {
+    const orderId = order._id || order.orderNumber;
+    const isChecked = selectedOrderIds.has(orderId);
+    return `
+    <tr class="${isChecked ? 'row-selected' : ''}" data-id="${orderId}">
+      <td style="text-align: center;">
+        <input type="checkbox" class="order-row-checkbox" data-id="${orderId}" ${isChecked ? 'checked' : ''} style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--color-primary);">
+      </td>
       <td>
         <strong style="color: var(--color-cyan); font-family: var(--font-mono);">${order.orderNumber}</strong>
         <div style="font-size: 0.72rem; color: var(--text-muted);">${new Date(order.createdAt).toLocaleDateString()}</div>
@@ -1099,7 +1270,7 @@ function renderOrdersTable() {
         </div>
       </td>
       <td>
-        <strong style="color: var(--color-primary); font-size: 0.95rem;">Rs. ${order.total.toLocaleString()}</strong>
+        <strong style="color: var(--color-primary); font-size: 0.95rem;">Rs. ${(order.total || 0).toLocaleString()}</strong>
         <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted);">${order.paymentMethod || 'COD'}</div>
       </td>
       <td>
@@ -1110,8 +1281,49 @@ function renderOrdersTable() {
           💬 WhatsApp
         </a>
       </td>
+      <td>
+        <div class="table-actions" style="justify-content: center;">
+          <button class="btn-icon-action delete btn-del-order" data-id="${orderId}" title="Delete Order">🗑️</button>
+        </div>
+      </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+
+  // Row selection checkboxes
+  tbody.querySelectorAll('.order-row-checkbox').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = cb.getAttribute('data-id');
+      const row = cb.closest('tr');
+      if (cb.checked) {
+        selectedOrderIds.add(id);
+        if (row) row.classList.add('row-selected');
+      } else {
+        selectedOrderIds.delete(id);
+        if (row) row.classList.remove('row-selected');
+      }
+      updateOrderBulkToolbar();
+    });
+  });
+
+  // Single delete button
+  tbody.querySelectorAll('.btn-del-order').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.getAttribute('data-id');
+      if (confirm('Are you sure you want to permanently delete this order? If inventory stock was deducted, it will be automatically restored.')) {
+        const res = await deleteOrder(id);
+        if (res.success) {
+          selectedOrderIds.delete(id);
+          showAdminToast('Order deleted successfully');
+          await refreshOrders();
+          await refreshProducts();
+          refreshDashboard();
+        } else {
+          alert('Could not delete order: ' + (res.message || 'Unknown error'));
+        }
+      }
+    });
+  });
 
   tbody.querySelectorAll('.status-change-select').forEach(sel => {
     sel.addEventListener('change', async (e) => {
@@ -1149,6 +1361,66 @@ function renderOrdersTable() {
       }
     });
   });
+}
+
+function setupOrderBulkActions() {
+  const selectAll = document.getElementById('selectAllOrders');
+  const clearBtn = document.getElementById('btnClearSelectedOrders');
+  const deleteBtn = document.getElementById('btnDeleteSelectedOrders');
+
+  if (selectAll) {
+    selectAll.addEventListener('change', () => {
+      if (selectAll.checked) {
+        orders.forEach(o => selectedOrderIds.add(o._id || o.orderNumber));
+      } else {
+        selectedOrderIds.clear();
+      }
+      renderOrdersTable();
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      selectedOrderIds.clear();
+      renderOrdersTable();
+    });
+  }
+
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', async () => {
+      const count = selectedOrderIds.size;
+      if (count === 0) return;
+
+      const confirmMsg = `Are you sure you want to permanently delete ${count} selected order${count === 1 ? '' : 's'}? If inventory stock was deducted for any of them, it will be restored.`;
+      if (!confirm(confirmMsg)) return;
+
+      deleteBtn.disabled = true;
+      const originalHtml = deleteBtn.innerHTML;
+      deleteBtn.innerHTML = `<span>⏳</span> Deleting ${count} orders...`;
+
+      try {
+        const idsToDelete = Array.from(selectedOrderIds);
+        const res = await deleteOrdersBatch(idsToDelete);
+
+        if (res.success) {
+          showAdminToast(res.message || `${count} orders deleted successfully`);
+          selectedOrderIds.clear();
+          await refreshOrders();
+          await refreshProducts();
+          refreshDashboard();
+        } else {
+          alert('Could not delete selected orders: ' + (res.message || 'Unknown error'));
+        }
+      } catch (err) {
+        console.error('Batch delete orders error:', err);
+        alert('An error occurred while deleting orders: ' + err.message);
+      } finally {
+        deleteBtn.disabled = false;
+        deleteBtn.innerHTML = originalHtml;
+        updateOrderBulkToolbar();
+      }
+    });
+  }
 }
 
 // ---------------- SETTINGS MANAGEMENT ---------------- //
@@ -1518,6 +1790,8 @@ function setupForms() {
   }
 
   setupProductBulkActions();
+  setupCategoryBulkActions();
+  setupOrderBulkActions();
 }
 
 function showAdminToast(msg) {

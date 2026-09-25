@@ -116,12 +116,55 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// POST bulk delete categories
+router.post('/batch-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No category IDs provided' });
+    }
+
+    if (getMongoStatus()) {
+      const mongoose = (await import('mongoose')).default;
+      const validObjectIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+      const orConditions = [{ slug: { $in: ids } }];
+      if (validObjectIds.length > 0) {
+        orConditions.push({ _id: { $in: validObjectIds } });
+      }
+
+      const result = await Category.deleteMany({ $or: orConditions });
+      return res.json({
+        success: true,
+        message: `Successfully deleted ${result.deletedCount || ids.length} category/categories`,
+        deletedCount: result.deletedCount
+      });
+    }
+
+    const initialLength = fallbackStore.categories.length;
+    fallbackStore.categories = fallbackStore.categories.filter(c => !ids.includes(c._id) && !ids.includes(c.slug));
+    const deletedCount = initialLength - fallbackStore.categories.length;
+    return res.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} category/categories`,
+      deletedCount
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // DELETE category
 router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     if (getMongoStatus()) {
-      const deleted = await Category.findByIdAndDelete(id);
+      let deleted = null;
+      if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+        deleted = await Category.findByIdAndDelete(id);
+      }
+      if (!deleted && id) {
+        deleted = await Category.findOneAndDelete({ slug: id });
+      }
       if (!deleted) return res.status(404).json({ success: false, message: 'Category not found' });
       return res.json({ success: true, message: 'Category deleted successfully' });
     }

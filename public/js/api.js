@@ -82,6 +82,46 @@ export async function updateOrderStatus(orderId, status) {
   }
 }
 
+export async function deleteOrder(id) {
+  try {
+    const res = await fetch(`${API_BASE}/orders/${id}`, {
+      method: 'DELETE'
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('Error deleting order:', err);
+    return { success: false, message: err.message };
+  }
+}
+
+export async function deleteOrdersBatch(ids) {
+  try {
+    const res = await fetch(`${API_BASE}/orders/batch-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Batch delete orders endpoint unavailable, falling back to parallel delete:', err);
+  }
+
+  // Graceful fallback to parallel individual deletions
+  try {
+    const results = await Promise.all(ids.map(id => deleteOrder(id)));
+    const successCount = results.filter(r => r && r.success).length;
+    return {
+      success: successCount > 0,
+      message: `Successfully deleted ${successCount} order(s)`,
+      deletedCount: successCount
+    };
+  } catch (fallbackErr) {
+    return { success: false, message: fallbackErr.message };
+  }
+}
+
 export async function fetchSettings() {
   try {
     const res = await fetch(`${API_BASE}/settings`);
@@ -130,6 +170,34 @@ export async function deleteCategory(id) {
   } catch (err) {
     console.error('Error deleting category:', err);
     return { success: false, message: err.message };
+  }
+}
+
+export async function deleteCategoriesBatch(ids) {
+  try {
+    const res = await fetch(`${API_BASE}/categories/batch-delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids })
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Batch delete categories endpoint unavailable, falling back to parallel delete:', err);
+  }
+
+  // Graceful fallback to parallel individual deletions
+  try {
+    const results = await Promise.all(ids.map(id => deleteCategory(id)));
+    const successCount = results.filter(r => r && r.success).length;
+    return {
+      success: successCount > 0,
+      message: `Successfully deleted ${successCount} category/categories`,
+      deletedCount: successCount
+    };
+  } catch (fallbackErr) {
+    return { success: false, message: fallbackErr.message };
   }
 }
 

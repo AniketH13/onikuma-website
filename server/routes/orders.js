@@ -400,4 +400,99 @@ router.patch('/:id/status', async (req, res) => {
   }
 });
 
+// POST bulk delete orders
+router.post('/batch-delete', async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: 'No order IDs provided' });
+    }
+
+    if (getMongoStatus()) {
+      const mongoose = (await import('mongoose')).default;
+      const validObjectIds = ids.filter(id => mongoose.Types.ObjectId.isValid(id));
+      const orConditions = [{ orderNumber: { $in: ids } }];
+      if (validObjectIds.length > 0) {
+        orConditions.push({ _id: { $in: validObjectIds } });
+      }
+
+      // Check if any orders being deleted had stock deducted, and restore it
+      const ordersToDelete = await Order.find({ $or: orConditions });
+      for (const ord of ordersToDelete) {
+        if (ord.stockDeducted) {
+          try {
+            await adjustStockForOrder(ord, false);
+          } catch (e) {
+            console.warn(`[Batch Delete Order] Stock restore warning for order ${ord.orderNumber}:`, e.message);
+          }
+        }
+      }
+
+      const result = await Order.deleteMany({ $or: orConditions });
+      return res.json({
+        success: true,
+        message: `Successfully deleted ${result.deletedCount || ids.length} order(s)`,
+        deletedCount: result.deletedCount
+      });
+    }
+
+    const initialLength = fallbackStore.orders.length;
+    const ordersToDelete = fallbackStore.orders.filter(o => ids.includes(o._id) || ids.includes(o.orderNumber));
+    for (const ord of ordersToDelete) {
+      if (ord.stockDeducted) {
+        adjustStockForOrder(ord, false);
+      }
+    }
+    fallbackStore.orders = fallbackStore.orders.filter(o => !ids.includes(o._id) && !ids.includes(o.orderNumber));
+    const deletedCount = initialLength - fallbackStore.orders.length;
+    return res.json({
+      success: true,
+      message: `Successfully deleted ${deletedCount} order(s)`,
+      deletedCount
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// DELETE single order
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (getMongoStatus()) {
+      let order = null;
+      if (id && id.match(/^[0-9a-fA-F]{24}$/)) {
+        order = await Order.findById(id);
+      }
+      if (!order && id) {
+        order = await Order.findOne({ orderNumber: id });
+      }
+      if (!order) return res.status(404).json({ success: false, message: 'Order not found' });
+
+      if (order.stockDeducted) {
+        try {
+          await adjustStockForOrder(order, false);
+        } catch (e) {
+          console.warn(`[Delete Order] Stock restore warning for order ${order.orderNumber}:`, e.message);
+        }
+      }
+
+      await Order.findByIdAndDelete(order._id);
+      return res.json({ success: true, message: 'Order deleted successfully' });
+    }
+
+    const idx = fallbackStore.orders.findIndex(o => o._id === id || o.orderNumber === id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Order not found' });
+
+    const order = fallbackStore.orders[idx];
+    if (order.stockDeducted) {
+      adjustStockForOrder(order, false);
+    }
+    fallbackStore.orders.splice(idx, 1);
+    return res.json({ success: true, message: 'Order deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 export default router;
